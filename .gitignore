@@ -205,3 +205,45 @@ cython_debug/
 marimo/_static/
 marimo/_lsp/
 __marimo__/
+
+# Photonic design files
+*.gds
+*.gds2
+*.oas
+*.spi
+*.cir
+*.cdl
+*.def
+*.lef
+
+# Simulation results
+*.wdb
+*.shm
+*.tr0
+*.ac0
+
+# PDK files (process design kits)
+pdk/
+*.pdk
+*.tech
+
+# Foundry specific
+*.skill
+*.dfm
+*.drc
+
+# CAD temporary files
+*.tmp
+*.bak
+
+# Security
+*.key
+*.pem
+*.p12
+*.pfx
+secrets.yaml
+config.secret.*
+
+# Performance profiling
+*.prof
+*.profile
