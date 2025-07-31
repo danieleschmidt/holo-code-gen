@@ -1,0 +1,123 @@
+# Logging configuration for Holo-Code-Gen
+
+version: 1
+disable_existing_loggers: false
+
+formatters:
+  standard:
+    format: '%(asctime)s [%(levelname)s] %(name)s: %(message)s'
+    datefmt: '%Y-%m-%d %H:%M:%S'
+  
+  detailed:
+    format: '%(asctime)s [%(levelname)s] %(name)s [%(filename)s:%(lineno)d] %(funcName)s(): %(message)s'
+    datefmt: '%Y-%m-%d %H:%M:%S'
+  
+  json:
+    format: '%(asctime)s %(name)s %(levelname)s %(message)s'
+    class: pythonjsonlogger.jsonlogger.JsonFormatter
+
+handlers:
+  console:
+    class: logging.StreamHandler
+    level: INFO
+    formatter: standard
+    stream: ext://sys.stdout
+  
+  file:
+    class: logging.handlers.RotatingFileHandler
+    level: DEBUG
+    formatter: detailed
+    filename: logs/holo-code-gen.log
+    maxBytes: 10485760  # 10MB
+    backupCount: 5
+    encoding: utf8
+  
+  error_file:
+    class: logging.handlers.RotatingFileHandler
+    level: ERROR
+    formatter: detailed
+    filename: logs/holo-code-gen-errors.log
+    maxBytes: 10485760  # 10MB
+    backupCount: 5
+    encoding: utf8
+  
+  security_file:
+    class: logging.handlers.RotatingFileHandler
+    level: WARNING
+    formatter: json
+    filename: logs/holo-code-gen-security.log
+    maxBytes: 10485760  # 10MB
+    backupCount: 10
+    encoding: utf8
+  
+  audit_file:
+    class: logging.handlers.RotatingFileHandler
+    level: INFO
+    formatter: json
+    filename: logs/holo-code-gen-audit.log
+    maxBytes: 10485760  # 10MB
+    backupCount: 30  # Keep longer for audit
+    encoding: utf8
+
+loggers:
+  holo_code_gen:
+    level: DEBUG
+    handlers: [console, file, error_file]
+    propagate: false
+  
+  holo_code_gen.security:
+    level: WARNING
+    handlers: [security_file, console]
+    propagate: false
+  
+  holo_code_gen.audit:
+    level: INFO
+    handlers: [audit_file]
+    propagate: false
+  
+  holo_code_gen.compiler:
+    level: DEBUG
+    handlers: [console, file]
+    propagate: false
+  
+  holo_code_gen.simulation:
+    level: INFO
+    handlers: [console, file]
+    propagate: false
+  
+  # Third-party libraries
+  urllib3:
+    level: WARNING
+    handlers: [console]
+    propagate: false
+  
+  requests:
+    level: WARNING
+    handlers: [console]
+    propagate: false
+
+root:
+  level: INFO
+  handlers: [console, file]
+
+# Custom configuration for photonic-specific logging
+photonic_logging:
+  pdk_access:
+    level: INFO
+    handlers: [audit_file, security_file]
+    format: 'json'
+  
+  layout_generation:
+    level: DEBUG
+    handlers: [file]
+    format: 'detailed'
+  
+  simulation_performance:
+    level: INFO
+    handlers: [file]
+    format: 'json'
+  
+  compilation_metrics:
+    level: INFO
+    handlers: [file]
+    format: 'json'

@@ -1,0 +1,25 @@
+# Grafana datasources configuration
+
+apiVersion: 1
+
+datasources:
+  - name: Prometheus
+    type: prometheus
+    access: proxy
+    url: http://prometheus:9090
+    isDefault: true
+    editable: true
+    jsonData:
+      httpMethod: POST
+      prometheusType: Prometheus
+      prometheusVersion: 2.40.0
+      cacheLevel: 'High'
+      disableMetricsLookup: false
+      incrementalQuerying: true
+      intervalFactor: 2
+      maxLines: 1000
+      timeInterval: '15s'
+    secureJsonData:
+      # Add authentication if needed
+      # basicAuthPassword: 'password'
+    version: 1

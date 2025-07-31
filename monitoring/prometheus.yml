@@ -1,0 +1,75 @@
+# Prometheus configuration for Holo-Code-Gen monitoring
+
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+  external_labels:
+    project: "holo-code-gen"
+    environment: "development"
+
+rule_files:
+  - "rules/*.yml"
+
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets:
+          - alertmanager:9093
+
+scrape_configs:
+  # Prometheus self-monitoring
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+
+  # Holo-Code-Gen application metrics
+  - job_name: 'holo-code-gen'
+    static_configs:
+      - targets: ['holo-code-gen:8000']
+    metrics_path: '/metrics'
+    scrape_interval: 10s
+    scrape_timeout: 5s
+    params:
+      format: ['prometheus']
+
+  # System metrics via Node Exporter
+  - job_name: 'node-exporter'
+    static_configs:
+      - targets: ['node-exporter:9100']
+    scrape_interval: 30s
+
+  # Container metrics via cAdvisor
+  - job_name: 'cadvisor'
+    static_configs:
+      - targets: ['cadvisor:8080']
+    scrape_interval: 30s
+
+  # Python application metrics
+  - job_name: 'python-app'
+    static_configs:
+      - targets: ['holo-code-gen:8000']
+    metrics_path: '/app/metrics'
+    scrape_interval: 15s
+
+  # Photonic simulation metrics
+  - job_name: 'photonic-simulation'
+    static_configs:
+      - targets: ['holo-simulation:8001']
+    metrics_path: '/simulation/metrics'
+    scrape_interval: 60s  # Longer interval for expensive simulations
+
+  # Custom photonic metrics
+  - job_name: 'photonic-performance'
+    static_configs:
+      - targets: ['holo-code-gen:8002']
+    metrics_path: '/photonic/metrics'
+    scrape_interval: 30s
+    params:
+      module: ['photonic_performance']
+
+# Remote write configuration (optional)
+# remote_write:
+#   - url: "https://prometheus-remote.example.com/api/v1/write"
+#     basic_auth:
+#       username: "$REMOTE_WRITE_USERNAME"
+#       password: "$REMOTE_WRITE_PASSWORD"
