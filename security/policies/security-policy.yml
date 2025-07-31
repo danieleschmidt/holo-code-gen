@@ -1,0 +1,84 @@
+# Security Policy Configuration for Holo-Code-Gen
+# This file defines security requirements and constraints
+
+version: "1.0"
+
+security_requirements:
+  # Vulnerability scanning thresholds
+  vulnerability_thresholds:
+    critical: 0  # No critical vulnerabilities allowed
+    high: 2      # Maximum 2 high-severity vulnerabilities
+    medium: 10   # Maximum 10 medium-severity vulnerabilities
+    low: 50      # Maximum 50 low-severity vulnerabilities
+
+  # Dependency security requirements
+  dependencies:
+    allow_pre_release: false
+    max_age_days: 365  # Dependencies older than 1 year flagged
+    required_licenses:
+      - "MIT"
+      - "Apache-2.0"
+      - "BSD-3-Clause"
+      - "BSD-2-Clause"
+      - "ISC"
+    forbidden_licenses:
+      - "GPL-3.0"
+      - "AGPL-3.0"
+      - "SSPL-1.0"
+
+  # Code security requirements
+  code_security:
+    bandit_confidence: "medium"  # Minimum confidence level
+    bandit_severity: "medium"    # Minimum severity level
+    secrets_detection: true
+    sast_required: true
+
+  # Photonic-specific security
+  photonic_security:
+    pdk_validation: true      # Validate PDK file integrity
+    layout_encryption: true   # Encrypt sensitive layout files
+    ip_protection: true       # Enable IP protection measures
+    foundry_compliance: true  # Ensure foundry compliance
+
+# SLSA (Supply-chain Levels for Software Artifacts) requirements
+slsa:
+  level: 2  # Target SLSA level
+  requirements:
+    - "Version controlled"
+    - "Build service"
+    - "Provenance available"
+    - "Verified provenance"
+
+# Container security
+container_security:
+  base_image_scanning: true
+  vulnerability_scanning: true
+  secrets_scanning: true
+  runtime_protection: true
+  network_policies: true
+
+# Compliance requirements
+compliance:
+  frameworks:
+    - "NIST Cybersecurity Framework"
+    - "ISO 27001"
+    - "GDPR" # If applicable
+  
+  data_classification:
+    public: ["documentation", "examples"]
+    internal: ["source_code", "test_data"]
+    confidential: ["pdk_files", "customer_layouts"]
+    restricted: ["foundry_secrets", "ip_cores"]
+
+# Incident response
+incident_response:
+  contact_email: "security@yourcompany.com"
+  escalation_time: 24  # hours
+  notification_required: true
+  
+# Monitoring and alerting
+monitoring:
+  security_events: true
+  anomaly_detection: true
+  threat_intelligence: true
+  log_retention_days: 90

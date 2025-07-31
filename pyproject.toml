@@ -148,6 +148,11 @@ ignore = [
 "__init__.py" = ["F401"]
 "tests/*" = ["S101"]
 
+[tool.bandit]
+configfile = "security/configs/bandit.yml"
+skip = ["B101"]  # Allow asserts in non-production code
+exclude_dirs = ["tests", "docs", "examples"]
+
 [tool.mypy]
 python_version = "3.9"
 warn_return_any = true
@@ -165,9 +170,11 @@ strict_equality = true
 
 [[tool.mypy.overrides]]
 module = [
-    "gdstk.*",
     "meep.*",
-    "skrf.*",
+    "gdstk.*",
     "klayout.*",
+    "siepic.*",
+    "scikit_rf.*",
+    "photonics_toolkit.*",
 ]
 ignore_missing_imports = true

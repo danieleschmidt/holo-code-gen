@@ -1,0 +1,119 @@
+version: '3.8'
+
+services:
+  holo-code-gen:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: runtime
+    image: holo-code-gen:latest
+    container_name: holo-code-gen
+    volumes:
+      - ./examples:/app/examples:ro
+      - ./data:/app/data
+      - holo-output:/app/output
+    environment:
+      - HOLO_CODE_GEN_LOG_LEVEL=INFO
+      - HOLO_CODE_GEN_CACHE_DIR=/app/cache
+    networks:
+      - holo-network
+    restart: unless-stopped
+
+  holo-dev:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: development
+    image: holo-code-gen:dev
+    container_name: holo-code-gen-dev
+    volumes:
+      - .:/app
+      - holo-cache:/app/.cache
+      - holo-venv:/app/venv
+    environment:
+      - HOLO_CODE_GEN_LOG_LEVEL=DEBUG
+      - HOLO_CODE_GEN_DEV_MODE=true
+    networks:
+      - holo-network
+    ports:
+      - "8888:8888"  # Jupyter
+      - "8000:8000"  # Development server
+    stdin_open: true
+    tty: true
+    command: /bin/bash
+
+  # Photonic simulation service (optional)
+  simulation:
+    image: holo-code-gen:dev
+    container_name: holo-simulation
+    volumes:
+      - ./simulations:/app/simulations
+      - holo-sim-results:/app/results
+    environment:
+      - HOLO_CODE_GEN_SIMULATION_MODE=true
+      - HOLO_CODE_GEN_PARALLEL_WORKERS=4
+    networks:
+      - holo-network
+    depends_on:
+      - holo-code-gen
+    profiles:
+      - simulation
+
+  # Monitoring stack (optional)
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: holo-prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus-data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+      - '--web.enable-lifecycle'
+    networks:
+      - holo-network
+    profiles:
+      - monitoring
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: holo-grafana
+    ports:
+      - "3000:3000"
+    volumes:
+      - grafana-data:/var/lib/grafana
+      - ./monitoring/grafana:/etc/grafana/provisioning
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_USERS_ALLOW_SIGN_UP=false
+    networks:
+      - holo-network
+    depends_on:
+      - prometheus
+    profiles:
+      - monitoring
+
+volumes:
+  holo-output:
+    driver: local
+  holo-cache:
+    driver: local
+  holo-venv:
+    driver: local
+  holo-sim-results:
+    driver: local
+  prometheus-data:
+    driver: local
+  grafana-data:
+    driver: local
+
+networks:
+  holo-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16
