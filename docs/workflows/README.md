@@ -1,8 +1,12 @@
-# CI/CD Workflows Documentation
+# GitHub Actions Workflows Documentation
 
-This directory contains documentation for automated workflows and CI/CD processes.
+This directory contains comprehensive documentation for automated workflows and CI/CD processes for the holo-code-gen project.
 
-## GitHub Actions Workflows
+## Overview
+
+This documentation provides templates and guidance for implementing robust CI/CD pipelines specifically designed for photonic neural network toolchain development.
+
+## Workflow Architecture
 
 *Note: Actual workflow files must be created manually in `.github/workflows/` directory*
 
