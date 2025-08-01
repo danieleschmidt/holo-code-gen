@@ -28,6 +28,16 @@ indent_size = 2
 
 [*.{md,rst}]
 trim_trailing_whitespace = false
+max_line_length = 100
+
+[*.toml]
+indent_size = 2
+
+[*.sh]
+indent_size = 2
+
+[Dockerfile*]
+indent_size = 2
 
 [Makefile]
 indent_style = tab

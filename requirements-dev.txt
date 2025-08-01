@@ -1,0 +1,61 @@
+# Development dependencies for holo-code-gen
+# These are in addition to the dependencies specified in pyproject.toml
+
+# Testing
+pytest>=7.0.0
+pytest-cov>=4.0.0
+pytest-mock>=3.10.0
+pytest-benchmark>=4.0.0
+pytest-xdist>=3.0.0  # Parallel test execution
+pytest-timeout>=2.1.0
+pytest-sugar>=0.9.7  # Better test output
+
+# Code quality
+black>=23.0.0
+ruff>=0.1.0
+mypy>=1.0.0
+bandit>=1.7.5
+safety>=2.3.0
+pre-commit>=3.0.0
+
+# Documentation
+sphinx>=6.0.0
+sphinx-rtd-theme>=1.2.0
+sphinx-autodoc-typehints>=1.24.0
+myst-parser>=2.0.0  # Markdown support
+sphinxcontrib-mermaid>=0.9.0  # Diagrams
+
+# Development tools
+jupyter>=1.0.0
+ipykernel>=6.0.0
+ipywidgets>=8.0.0
+notebook>=7.0.0
+
+# Profiling and debugging
+memory-profiler>=0.61.0
+line-profiler>=4.0.0
+py-spy>=0.3.14
+snakeviz>=2.2.0
+
+# Packaging and distribution
+build>=1.0.0
+twine>=4.0.0
+setuptools-scm>=8.0.0
+
+# Monitoring and metrics
+codecov>=2.1.13
+
+# Scientific computing (for development/testing)
+matplotlib>=3.7.0
+seaborn>=0.12.0
+plotly>=5.17.0
+
+# Performance testing
+asv>=0.6.0  # Airspeed velocity for benchmarking
+
+# Security scanning
+pip-audit>=2.6.0
+cyclonedx-bom>=4.0.0  # SBOM generation
+
+# Container development
+docker-compose>=1.29.0

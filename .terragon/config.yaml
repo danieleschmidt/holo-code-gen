@@ -1,0 +1,68 @@
+# Terragon Autonomous SDLC Configuration
+# Repository: holo-code-gen
+# Maturity Level: MATURING (50-75%)
+# Generated: 2025-08-01
+
+repository:
+  name: "holo-code-gen"
+  maturity: "maturing"
+  domain: "photonic-neural-networks"
+  primary_language: "python"
+  
+scoring:
+  weights:
+    wsjf: 0.6
+    ice: 0.1
+    technicalDebt: 0.2
+    security: 0.1
+  
+  thresholds:
+    minScore: 15
+    maxRisk: 0.7
+    securityBoost: 2.0
+    complianceBoost: 1.8
+
+discovery:
+  sources:
+    - gitHistory
+    - staticAnalysis
+    - issueTrackers
+    - vulnerabilityDatabases
+    - performanceMonitoring
+    - todoComments
+  
+  patterns:
+    debt_markers: ["TODO", "FIXME", "HACK", "DEPRECATED", "XXX"]
+    security_files: ["*.py", "*.yml", "*.yaml", "*.json"]
+    performance_critical: ["compiler/", "optimization/", "simulation/"]
+
+execution:
+  maxConcurrentTasks: 1
+  testRequirements:
+    minCoverage: 85
+    performanceRegression: 3
+    lintPassing: true
+    typeCheckPassing: true
+  
+  rollbackTriggers:
+    - testFailure
+    - buildFailure
+    - securityViolation
+    - coverageDecrease
+
+monitoring:
+  valueMetrics:
+    enableTracking: true
+    retentionDays: 90
+    reportingInterval: "daily"
+  
+  qualityGates:
+    - name: "test_coverage"
+      threshold: 85
+      critical: true
+    - name: "security_scan"
+      threshold: 0
+      critical: true
+    - name: "type_coverage"
+      threshold: 95
+      critical: false
