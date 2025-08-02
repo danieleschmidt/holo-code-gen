@@ -77,6 +77,14 @@ Repository = "https://github.com/yourusername/holo-code-gen.git"
 [project.scripts]
 holo-code-gen = "holo_code_gen.cli:main"
 
+# Development scripts for convenience
+[project.optional-dependencies.scripts]
+test = "pytest tests/ -v"
+lint = "ruff check . && mypy holo_code_gen"
+format = "ruff format . && ruff --fix ."
+docs = "sphinx-build docs docs/_build/html"
+clean = "find . -type d -name '__pycache__' -exec rm -rf {} + && find . -name '*.pyc' -delete"
+
 [tool.hatch.version]
 path = "holo_code_gen/__init__.py"
 

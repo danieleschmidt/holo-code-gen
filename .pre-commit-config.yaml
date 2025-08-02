@@ -1,20 +1,30 @@
-# Pre-commit configuration for code quality
+# Pre-commit hooks for Holo-Code-Gen
 # See https://pre-commit.com for more information
 
 repos:
+  # Standard pre-commit hooks
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v4.5.0
     hooks:
       - id: trailing-whitespace
+        exclude: '\.md$'
       - id: end-of-file-fixer
+        exclude: '\.ipynb$'
       - id: check-yaml
-      - id: check-json
+        exclude: '^docs/.*\.ya?ml$'
       - id: check-toml
+      - id: check-json
       - id: check-merge-conflict
       - id: check-added-large-files
+        args: ['--maxkb=10240']  # 10MB
+      - id: check-case-conflict
+      - id: check-executables-have-shebangs
+      - id: check-shebang-scripts-are-executable
       - id: debug-statements
+      - id: detect-private-key
       - id: check-docstring-first
 
+  # Python code formatting with ruff
   - repo: https://github.com/astral-sh/ruff-pre-commit
     rev: v0.1.7
     hooks:
@@ -22,13 +32,24 @@ repos:
         args: [--fix, --exit-non-zero-on-fix]
       - id: ruff-format
 
+  # Python type checking
   - repo: https://github.com/pre-commit/mirrors-mypy
     rev: v1.7.1
     hooks:
       - id: mypy
         additional_dependencies: [types-all]
-        args: [--ignore-missing-imports]
+        exclude: '^(docs/|tests/|examples/)'
+        args: [--ignore-missing-imports, --no-strict-optional]
 
+  # Security scanning
+  - repo: https://github.com/pycqa/bandit
+    rev: 1.7.5
+    hooks:
+      - id: bandit
+        args: [-c, security/configs/bandit.yml]
+        exclude: '^tests/'
+
+  # Spell checking
   - repo: https://github.com/codespell-project/codespell
     rev: v2.2.6
     hooks:
@@ -39,15 +60,16 @@ repos:
               .*\.gds|
               .*\.gds2|
               .*\.spi|
-              .*\.cir
+              .*\.cir|
+              .*\.ipynb
           )$
 
-  - repo: https://github.com/pycqa/bandit
-    rev: 1.7.5
+  # Jupyter notebook cleaning
+  - repo: https://github.com/kynan/nbstripout
+    rev: 0.6.1
     hooks:
-      - id: bandit
-        args: [-c, security/configs/bandit.yml]
-        exclude: ^tests/
+      - id: nbstripout
+        args: [--extra-keys, 'metadata.kernelspec metadata.language_info.version']
 
   # Dependency scanning
   - repo: https://github.com/Lucas-C/pre-commit-hooks-safety
@@ -56,6 +78,21 @@ repos:
       - id: python-safety-dependencies-check
         files: requirements.*\.txt$
 
+  # Shell script linting
+  - repo: https://github.com/koalaman/shellcheck-precommit
+    rev: v0.9.0
+    hooks:
+      - id: shellcheck
+        args: [-e, SC1091]  # Disable "Not following" warnings
+
+  # Dockerfile linting
+  - repo: https://github.com/hadolint/hadolint
+    rev: v2.12.0
+    hooks:
+      - id: hadolint-docker
+        args: [--ignore, DL3008, --ignore, DL3009]
+
+  # Local custom hooks
   - repo: local
     hooks:
       - id: pytest-check
@@ -66,3 +103,25 @@ repos:
         always_run: true
         args: [--tb=short, -q]
         stages: [manual]
+
+# Global configuration
+fail_fast: false
+default_stages: [commit]
+
+# Exclude patterns
+exclude: |
+  (?x)^(
+    \.git/|
+    \.pytest_cache/|
+    \.mypy_cache/|
+    __pycache__/|
+    \.venv/|
+    venv/|
+    \.tox/|
+    build/|
+    dist/|
+    .*\.egg-info/|
+    node_modules/|
+    \.devcontainer/bashrc|
+    \.devcontainer/zshrc
+  )
