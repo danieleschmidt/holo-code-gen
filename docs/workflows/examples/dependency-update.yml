@@ -1,0 +1,506 @@
+# Automated Dependency Update Workflow for Holo-Code-Gen
+# Place this file in .github/workflows/dependency-update.yml
+
+name: Dependency Updates
+
+on:
+  schedule:
+    # Run weekly on Mondays at 9 AM UTC
+    - cron: '0 9 * * 1'
+  workflow_dispatch:
+    inputs:
+      update_type:
+        description: 'Type of dependency update'
+        required: true
+        default: 'minor'
+        type: choice
+        options:
+          - patch
+          - minor
+          - major
+          - all
+      dry_run:
+        description: 'Perform dry run without creating PRs'
+        required: false
+        default: false
+        type: boolean
+
+env:
+  PYTHON_VERSION: "3.11"
+
+jobs:
+  # Job 1: Analyze Current Dependencies
+  analyze-dependencies:
+    name: Analyze Dependencies
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    outputs:
+      updates-available: ${{ steps.check.outputs.updates-available }}
+      security-updates: ${{ steps.security.outputs.security-updates }}
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: 'pip'
+      
+      - name: Install analysis tools
+        run: |
+          python -m pip install --upgrade pip
+          pip install pip-tools pip-audit safety
+          pip install -e .
+      
+      - name: Generate current lockfile
+        run: |
+          pip-compile pyproject.toml --output-file=requirements-current.txt
+      
+      - name: Check for available updates
+        id: check
+        run: |
+          pip list --outdated --format=json > outdated-packages.json
+          
+          UPDATES_COUNT=$(jq length outdated-packages.json)
+          echo "updates-available=$UPDATES_COUNT" >> $GITHUB_OUTPUT
+          
+          echo "## Available Updates: $UPDATES_COUNT" >> $GITHUB_STEP_SUMMARY
+          
+          if [ "$UPDATES_COUNT" -gt 0 ]; then
+            echo "### Outdated Packages" >> $GITHUB_STEP_SUMMARY
+            jq -r '.[] | "- \(.name): \(.version) → \(.latest_version)"' outdated-packages.json >> $GITHUB_STEP_SUMMARY
+          fi
+      
+      - name: Check for security updates
+        id: security
+        run: |
+          # Check for security vulnerabilities
+          safety check --json --output safety-check.json || true
+          pip-audit --format=json --output=audit-results.json || true
+          
+          SECURITY_ISSUES=0
+          if [ -f safety-check.json ] && [ -s safety-check.json ]; then
+            SECURITY_ISSUES=$(jq length safety-check.json)
+          fi
+          
+          echo "security-updates=$SECURITY_ISSUES" >> $GITHUB_OUTPUT
+          echo "Security issues found: $SECURITY_ISSUES" >> $GITHUB_STEP_SUMMARY
+      
+      - name: Upload analysis artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: dependency-analysis
+          path: |
+            outdated-packages.json
+            safety-check.json
+            audit-results.json
+            requirements-current.txt
+
+  # Job 2: Security Updates (High Priority)
+  security-updates:
+    name: Security Updates
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    needs: analyze-dependencies
+    if: needs.analyze-dependencies.outputs.security-updates != '0'
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+      
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: 'pip'
+      
+      - name: Download analysis results
+        uses: actions/download-artifact@v3
+        with:
+          name: dependency-analysis
+      
+      - name: Install tools
+        run: |
+          python -m pip install --upgrade pip
+          pip install pip-tools safety pip-audit
+      
+      - name: Update security-vulnerable packages
+        run: |
+          echo "Updating packages with security vulnerabilities..."
+          
+          # Extract vulnerable packages from safety report
+          if [ -f safety-check.json ] && [ -s safety-check.json ]; then
+            jq -r '.[].package_name' safety-check.json | sort -u > vulnerable-packages.txt
+            
+            while IFS= read -r package; do
+              echo "Updating $package for security..."
+              pip install --upgrade "$package"
+            done < vulnerable-packages.txt
+            
+            # Update requirements
+            pip freeze > requirements-security-update.txt
+          fi
+      
+      - name: Test security updates
+        run: |
+          # Install updated dependencies
+          pip install -r requirements-security-update.txt
+          
+          # Run basic tests to ensure nothing is broken
+          python -c "import holo_code_gen; print('Import test passed')"
+          
+          # Run critical tests
+          pytest tests/unit/test_core.py -v
+      
+      - name: Create security update PR
+        if: ${{ !inputs.dry_run }}
+        uses: peter-evans/create-pull-request@v5
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          commit-message: "security: update vulnerable dependencies"
+          title: "🔒 Security: Update vulnerable dependencies"
+          body: |
+            ## Security Dependency Updates
+            
+            This PR updates dependencies with known security vulnerabilities.
+            
+            ### Updated Packages
+            $(cat vulnerable-packages.txt | sed 's/^/- /')
+            
+            ### Security Issues Addressed
+            - Automated security patch application
+            - Vulnerability assessment passed
+            - Core functionality verified
+            
+            **Priority**: High (Security)
+            **Auto-merge**: Recommended after CI passes
+          branch: security/dependency-updates
+          delete-branch: true
+          labels: |
+            security
+            dependencies
+            automated
+
+  # Job 3: Regular Dependency Updates
+  regular-updates:
+    name: Regular Updates
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    needs: analyze-dependencies
+    if: needs.analyze-dependencies.outputs.updates-available != '0'
+    strategy:
+      matrix:
+        update-type: 
+          - patch
+          - minor
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+      
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: 'pip'
+      
+      - name: Install tools
+        run: |
+          python -m pip install --upgrade pip
+          pip install pip-tools
+      
+      - name: Update dependencies (${{ matrix.update-type }})
+        run: |
+          echo "Performing ${{ matrix.update-type }} updates..."
+          
+          case "${{ matrix.update-type }}" in
+            "patch")
+              # Update patch versions only
+              pip-compile --upgrade-package '*' --only-generate-hashes pyproject.toml
+              ;;
+            "minor")
+              # Update minor versions
+              pip-compile --upgrade pyproject.toml
+              ;;
+            "major")
+              # Update major versions (only in manual mode)
+              if [ "${{ inputs.update_type }}" = "major" ] || [ "${{ inputs.update_type }}" = "all" ]; then
+                pip-compile --upgrade pyproject.toml
+              fi
+              ;;
+          esac
+      
+      - name: Install updated dependencies
+        run: |
+          pip install -r requirements.txt
+      
+      - name: Run comprehensive tests
+        run: |
+          echo "Testing updated dependencies..."
+          
+          # Basic import test
+          python -c "import holo_code_gen; print(f'Version: {holo_code_gen.__version__}')"
+          
+          # Unit tests
+          pytest tests/unit/ -v --tb=short
+          
+          # Integration tests (subset)
+          pytest tests/integration/test_core_integration.py -v
+          
+          # Photonic-specific tests
+          python -c "
+          from holo_code_gen.templates import IMECLibrary
+          try:
+              IMECLibrary.verify_integrity()
+              print('✅ Photonic library integrity check passed')
+          except Exception as e:
+              print(f'❌ Photonic library check failed: {e}')
+              exit(1)
+          "
+      
+      - name: Performance regression test
+        run: |
+          echo "Checking for performance regressions..."
+          
+          # Run basic performance test
+          python -c "
+          import time
+          from holo_code_gen.compiler import PhotonicCompiler
+          
+          start = time.time()
+          # Basic compilation test
+          compiler = PhotonicCompiler()
+          duration = time.time() - start
+          
+          print(f'Compilation setup time: {duration:.2f}s')
+          if duration > 10:  # Should be much faster
+              print('⚠️ Performance regression detected')
+              exit(1)
+          print('✅ Performance check passed')
+          "
+      
+      - name: Generate update summary
+        run: |
+          echo "## ${{ matrix.update-type }} Dependency Updates" > update-summary.md
+          echo "" >> update-summary.md
+          
+          # Compare old vs new requirements
+          if [ -f requirements-current.txt ]; then
+            echo "### Changed Dependencies" >> update-summary.md
+            diff requirements-current.txt requirements.txt | grep "^[<>]" | sed 's/^</❌ Removed: /; s/^>/✅ Added: /' >> update-summary.md || echo "No changes detected" >> update-summary.md
+          fi
+          
+          echo "" >> update-summary.md
+          echo "### Test Results" >> update-summary.md
+          echo "- ✅ Unit tests passed" >> update-summary.md
+          echo "- ✅ Integration tests passed" >> update-summary.md
+          echo "- ✅ Photonic library integrity verified" >> update-summary.md
+          echo "- ✅ Performance regression check passed" >> update-summary.md
+      
+      - name: Create update PR
+        if: ${{ !inputs.dry_run }}
+        uses: peter-evans/create-pull-request@v5
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          commit-message: "deps: ${{ matrix.update-type }} dependency updates"
+          title: "📦 Dependencies: ${{ matrix.update-type }} updates"
+          body-path: update-summary.md
+          branch: deps/${{ matrix.update-type }}-updates-${{ github.run_number }}
+          delete-branch: true
+          labels: |
+            dependencies
+            automated
+            ${{ matrix.update-type }}
+
+  # Job 4: Major Version Updates (Manual Review Required)
+  major-updates:
+    name: Major Version Updates
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    needs: analyze-dependencies
+    if: inputs.update_type == 'major' || inputs.update_type == 'all'
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+      
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: 'pip'
+      
+      - name: Download analysis results
+        uses: actions/download-artifact@v3
+        with:
+          name: dependency-analysis
+      
+      - name: Identify major updates
+        run: |
+          echo "Identifying packages with major version updates..."
+          
+          # Filter for major version changes
+          jq -r '.[] | select(.latest_version | split(".")[0] != (.version | split(".")[0])) | "\(.name): \(.version) → \(.latest_version)"' outdated-packages.json > major-updates.txt
+          
+          if [ -s major-updates.txt ]; then
+            echo "Major updates available:"
+            cat major-updates.txt
+          else
+            echo "No major updates available"
+            exit 0
+          fi
+      
+      - name: Create breaking changes analysis
+        run: |
+          echo "# Major Dependency Updates Analysis" > major-updates-analysis.md
+          echo "" >> major-updates-analysis.md
+          echo "⚠️ **These updates may contain breaking changes and require manual review.**" >> major-updates-analysis.md
+          echo "" >> major-updates-analysis.md
+          
+          echo "## Packages with Major Version Changes" >> major-updates-analysis.md
+          cat major-updates.txt | sed 's/^/- /' >> major-updates-analysis.md
+          echo "" >> major-updates-analysis.md
+          
+          echo "## Required Actions" >> major-updates-analysis.md
+          echo "1. Review changelog for each package" >> major-updates-analysis.md
+          echo "2. Update code for breaking changes" >> major-updates-analysis.md
+          echo "3. Run comprehensive test suite" >> major-updates-analysis.md
+          echo "4. Update documentation if needed" >> major-updates-analysis.md
+          echo "5. Consider creating feature branch for testing" >> major-updates-analysis.md
+      
+      - name: Create major updates issue
+        if: ${{ !inputs.dry_run }}
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const analysis = fs.readFileSync('major-updates-analysis.md', 'utf8');
+            
+            await github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: '🔄 Major Dependency Updates Available',
+              body: analysis,
+              labels: ['dependencies', 'breaking-changes', 'manual-review']
+            });
+
+  # Job 5: Photonic-Specific Dependencies
+  photonic-dependencies:
+    name: Photonic Dependencies
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    needs: analyze-dependencies
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: 'pip'
+      
+      - name: Check photonic-specific dependencies
+        run: |
+          echo "Checking photonic simulation and design tool dependencies..."
+          
+          # List of photonic-specific packages to monitor
+          PHOTONIC_PACKAGES="gdstk klayout meep scikit-rf"
+          
+          echo "## Photonic Dependencies Status" >> $GITHUB_STEP_SUMMARY
+          
+          for package in $PHOTONIC_PACKAGES; do
+            if pip show "$package" >/dev/null 2>&1; then
+              CURRENT=$(pip show "$package" | grep Version | cut -d' ' -f2)
+              echo "- $package: $CURRENT" >> $GITHUB_STEP_SUMMARY
+              
+              # Check for updates
+              LATEST=$(pip index versions "$package" 2>/dev/null | head -1 | cut -d' ' -f2 || echo "unknown")
+              if [ "$CURRENT" != "$LATEST" ] && [ "$LATEST" != "unknown" ]; then
+                echo "  - 📦 Update available: $LATEST" >> $GITHUB_STEP_SUMMARY
+              fi
+            else
+              echo "- $package: Not installed" >> $GITHUB_STEP_SUMMARY
+            fi
+          done
+      
+      - name: Validate photonic library compatibility
+        run: |
+          pip install -e ".[simulation]"
+          
+          # Test photonic library loading
+          python -c "
+          try:
+              from holo_code_gen.templates import IMECLibrary
+              print('✅ IMEC Library loading: OK')
+          except Exception as e:
+              print(f'❌ IMEC Library loading: {e}')
+          
+          try:
+              import gdstk
+              print('✅ GDSTK import: OK')
+          except Exception as e:
+              print(f'❌ GDSTK import: {e}')
+          
+          try:
+              import numpy as np
+              import scipy
+              print('✅ Scientific computing libraries: OK')
+          except Exception as e:
+              print(f'❌ Scientific libraries: {e}')
+          "
+
+  # Job 6: Summary and Cleanup
+  update-summary:
+    name: Update Summary
+    runs-on: ubuntu-latest
+    needs: [analyze-dependencies, security-updates, regular-updates, major-updates, photonic-dependencies]
+    if: always()
+    
+    steps:
+      - name: Generate summary report
+        run: |
+          echo "# 📦 Dependency Update Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Run Date**: $(date -u +%Y-%m-%d\ %H:%M:%S\ UTC)" >> $GITHUB_STEP_SUMMARY
+          echo "**Trigger**: ${{ github.event_name }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          echo "## Job Results" >> $GITHUB_STEP_SUMMARY
+          echo "- Analysis: ${{ needs.analyze-dependencies.result }}" >> $GITHUB_STEP_SUMMARY
+          echo "- Security Updates: ${{ needs.security-updates.result }}" >> $GITHUB_STEP_SUMMARY
+          echo "- Regular Updates: ${{ needs.regular-updates.result }}" >> $GITHUB_STEP_SUMMARY
+          echo "- Major Updates: ${{ needs.major-updates.result }}" >> $GITHUB_STEP_SUMMARY
+          echo "- Photonic Dependencies: ${{ needs.photonic-dependencies.result }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          echo "## Available Updates" >> $GITHUB_STEP_SUMMARY
+          echo "- Total: ${{ needs.analyze-dependencies.outputs.updates-available }}" >> $GITHUB_STEP_SUMMARY
+          echo "- Security: ${{ needs.analyze-dependencies.outputs.security-updates }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          if [ "${{ inputs.dry_run }}" = "true" ]; then
+            echo "🔍 **Dry Run Mode**: No PRs were created" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "🚀 **Active Mode**: PRs created for available updates" >> $GITHUB_STEP_SUMMARY
+          fi
+      
+      - name: Check if any critical issues need attention
+        run: |
+          SECURITY_ISSUES="${{ needs.analyze-dependencies.outputs.security-updates }}"
+          
+          if [ "$SECURITY_ISSUES" -gt 0 ]; then
+            echo "⚠️ SECURITY ALERT: $SECURITY_ISSUES security vulnerabilities need immediate attention"
+            # Could add notification logic here
+          fi
+          
+          echo "✅ Dependency update workflow completed"

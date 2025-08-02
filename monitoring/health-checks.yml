@@ -1,0 +1,140 @@
+# Health check configuration for Holo-Code-Gen
+
+# Application health check endpoints
+health_checks:
+  # Basic application health
+  app_health:
+    endpoint: "/health"
+    method: "GET"
+    timeout: 5s
+    interval: 30s
+    expected_status: 200
+    expected_response:
+      status: "healthy"
+      version: "0.1.0"
+      uptime: true
+
+  # Detailed health check with dependencies
+  app_ready:
+    endpoint: "/health/ready"
+    method: "GET"
+    timeout: 10s
+    interval: 60s
+    expected_status: 200
+    checks:
+      - database_connection
+      - photonic_library_loaded
+      - temp_directory_writable
+      - memory_available
+
+  # Liveness probe for Kubernetes
+  app_live:
+    endpoint: "/health/live"
+    method: "GET"
+    timeout: 3s
+    interval: 10s
+    expected_status: 200
+    failure_threshold: 3
+    success_threshold: 1
+
+# Component-specific health checks
+components:
+  photonic_compiler:
+    endpoint: "/health/compiler"
+    checks:
+      - template_library_accessible
+      - optimization_engine_ready
+      - memory_sufficient
+    dependencies:
+      - photonic_library
+      - optimization_service
+
+  simulation_engine:
+    endpoint: "/health/simulation"
+    checks:
+      - simulation_backend_available
+      - gpu_accessible  # if GPU support enabled
+      - simulation_cache_writable
+    dependencies:
+      - photonic_compiler
+      - file_system
+
+  gds_exporter:
+    endpoint: "/health/gds"
+    checks:
+      - gds_library_loaded
+      - output_directory_writable
+      - design_rules_accessible
+    dependencies:
+      - photonic_compiler
+
+# External dependencies health
+external_dependencies:
+  prometheus:
+    endpoint: "http://prometheus:9090/-/healthy"
+    timeout: 5s
+    critical: false  # non-critical dependency
+
+  grafana:
+    endpoint: "http://grafana:3000/api/health"
+    timeout: 5s
+    critical: false
+
+# Custom health check scripts
+scripts:
+  photonic_library_check:
+    command: "python -c 'from holo_code_gen.templates import IMECLibrary; IMECLibrary.verify_integrity()'"
+    timeout: 30s
+    interval: 300s  # 5 minutes
+
+  memory_pressure_check:
+    command: "python -c 'import psutil; exit(0 if psutil.virtual_memory().percent < 85 else 1)'"
+    timeout: 5s
+    interval: 60s
+
+  disk_space_check:
+    command: "df -h /app/data | awk 'NR==2 {if ($5+0 > 90) exit 1; else exit 0}'"
+    timeout: 5s
+    interval: 120s
+
+# Health check responses
+responses:
+  healthy:
+    status: "healthy"
+    timestamp: "{{ now }}"
+    version: "{{ app.version }}"
+    uptime: "{{ app.uptime }}"
+    dependencies:
+      status: "all_healthy"
+      details: {}
+
+  degraded:
+    status: "degraded"
+    timestamp: "{{ now }}"
+    version: "{{ app.version }}"
+    issues: "{{ health.issues }}"
+    dependencies:
+      status: "some_unhealthy"
+      details: "{{ health.dependency_status }}"
+
+  unhealthy:
+    status: "unhealthy"
+    timestamp: "{{ now }}"
+    version: "{{ app.version }}"
+    critical_issues: "{{ health.critical_issues }}"
+    dependencies:
+      status: "critical_failure"
+      details: "{{ health.dependency_status }}"
+
+# Monitoring integration
+monitoring:
+  metrics_endpoint: "/metrics"
+  health_metrics:
+    - holo_code_gen_health_status
+    - holo_code_gen_dependency_status
+    - holo_code_gen_health_check_duration_seconds
+    - holo_code_gen_health_check_failures_total
+
+  log_health_events: true
+  log_level: "INFO"
+  structured_logs: true

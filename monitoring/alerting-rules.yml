@@ -1,0 +1,168 @@
+# Prometheus alerting rules for Holo-Code-Gen
+
+groups:
+  - name: holo-code-gen.rules
+    rules:
+      # Application availability
+      - alert: HoloCodeGenDown
+        expr: up{job="holo-code-gen"} == 0
+        for: 1m
+        labels:
+          severity: critical
+          service: holo-code-gen
+        annotations:
+          summary: "Holo-Code-Gen service is down"
+          description: "Holo-Code-Gen has been down for more than 1 minute."
+          runbook_url: "https://docs.holo-code-gen.com/runbooks/service-down"
+
+      - alert: HoloCodeGenHighErrorRate
+        expr: rate(holo_code_gen_errors_total[5m]) > 0.1
+        for: 2m
+        labels:
+          severity: warning
+          service: holo-code-gen
+        annotations:
+          summary: "High error rate in Holo-Code-Gen"
+          description: "Error rate is {{ $value }} errors per second."
+
+      # Resource utilization
+      - alert: HoloCodeGenHighMemoryUsage
+        expr: process_resident_memory_bytes{job="holo-code-gen"} / process_virtual_memory_max_bytes{job="holo-code-gen"} > 0.9
+        for: 5m
+        labels:
+          severity: warning
+          service: holo-code-gen
+        annotations:
+          summary: "High memory usage in Holo-Code-Gen"
+          description: "Memory usage is above 90% for more than 5 minutes."
+
+      - alert: HoloCodeGenHighCPUUsage
+        expr: rate(process_cpu_seconds_total{job="holo-code-gen"}[5m]) > 0.8
+        for: 10m
+        labels:
+          severity: warning
+          service: holo-code-gen
+        annotations:
+          summary: "High CPU usage in Holo-Code-Gen"
+          description: "CPU usage is above 80% for more than 10 minutes."
+
+      # Compilation performance
+      - alert: HoloCodeGenSlowCompilation
+        expr: histogram_quantile(0.95, rate(holo_code_gen_compilation_duration_seconds_bucket[5m])) > 300
+        for: 5m
+        labels:
+          severity: warning
+          service: holo-code-gen
+        annotations:
+          summary: "Slow compilation times detected"
+          description: "95th percentile compilation time is {{ $value }}s"
+
+      - alert: HoloCodeGenCompilationFailures
+        expr: rate(holo_code_gen_compilation_failures_total[5m]) > 0.05
+        for: 3m
+        labels:
+          severity: critical
+          service: holo-code-gen
+        annotations:
+          summary: "High compilation failure rate"
+          description: "Compilation failure rate is {{ $value }} failures per second."
+
+      # Simulation performance
+      - alert: HoloCodeGenSimulationBacklog
+        expr: holo_code_gen_simulation_queue_size > 100
+        for: 15m
+        labels:
+          severity: warning
+          service: holo-code-gen
+        annotations:
+          summary: "Simulation queue backlog"
+          description: "Simulation queue has {{ $value }} pending jobs."
+
+      - alert: HoloCodeGenSimulationTimeout
+        expr: increase(holo_code_gen_simulation_timeouts_total[10m]) > 5
+        for: 1m
+        labels:
+          severity: warning
+          service: holo-code-gen
+        annotations:
+          summary: "Frequent simulation timeouts"
+          description: "{{ $value }} simulation timeouts in the last 10 minutes."
+
+      # Storage and filesystem
+      - alert: HoloCodeGenDiskSpaceLow
+        expr: (node_filesystem_avail_bytes{mountpoint="/app/data"} / node_filesystem_size_bytes{mountpoint="/app/data"}) < 0.1
+        for: 5m
+        labels:
+          severity: critical
+          service: holo-code-gen
+        annotations:
+          summary: "Low disk space"
+          description: "Disk space is below 10% on data volume."
+
+      # Security and audit
+      - alert: HoloCodeGenSecurityEvent
+        expr: increase(holo_code_gen_security_events_total[5m]) > 0
+        for: 0m
+        labels:
+          severity: critical
+          service: holo-code-gen
+        annotations:
+          summary: "Security event detected"
+          description: "{{ $value }} security events detected in the last 5 minutes."
+
+      - alert: HoloCodeGenUnauthorizedAccess
+        expr: increase(holo_code_gen_unauthorized_access_total[5m]) > 3
+        for: 0m
+        labels:
+          severity: critical
+          service: holo-code-gen
+        annotations:
+          summary: "Multiple unauthorized access attempts"
+          description: "{{ $value }} unauthorized access attempts in the last 5 minutes."
+
+  - name: holo-code-gen.photonic.rules
+    rules:
+      # Photonic-specific alerts
+      - alert: PhotonicLibraryLoadFailure
+        expr: increase(holo_code_gen_photonic_library_load_failures_total[10m]) > 0
+        for: 0m
+        labels:
+          severity: critical
+          service: holo-code-gen
+          component: photonic-library
+        annotations:
+          summary: "Photonic library load failure"
+          description: "Failed to load photonic component library."
+
+      - alert: GDSExportFailure
+        expr: rate(holo_code_gen_gds_export_failures_total[5m]) > 0.01
+        for: 2m
+        labels:
+          severity: warning
+          service: holo-code-gen
+          component: gds-export
+        annotations:
+          summary: "GDS export failures"
+          description: "GDS export failure rate is {{ $value }} failures per second."
+
+      - alert: SimulationAccuracyDrift
+        expr: abs(holo_code_gen_simulation_accuracy_score - 0.95) > 0.05
+        for: 30m
+        labels:
+          severity: warning
+          service: holo-code-gen
+          component: simulation
+        annotations:
+          summary: "Simulation accuracy drift detected"
+          description: "Simulation accuracy has drifted to {{ $value }}."
+
+      - alert: PhotonicOptimizationStalled
+        expr: delta(holo_code_gen_optimization_iterations_total[30m]) == 0 and holo_code_gen_active_optimizations > 0
+        for: 30m
+        labels:
+          severity: warning
+          service: holo-code-gen
+          component: optimization
+        annotations:
+          summary: "Photonic optimization stalled"
+          description: "Optimization process has not progressed in 30 minutes."

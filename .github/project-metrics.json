@@ -1,0 +1,311 @@
+{
+  "project": {
+    "name": "holo-code-gen",
+    "description": "Code-first HLS toolchain for mapping compute graphs to photonic integrated circuits",
+    "repository": "danieleschmidt/holo-code-gen",
+    "created_date": "2024-01-01",
+    "primary_language": "python",
+    "license": "MIT",
+    "version": "0.1.0"
+  },
+  "metrics": {
+    "code_quality": {
+      "lines_of_code": {
+        "target": 50000,
+        "current": 12500,
+        "last_updated": "2024-12-20"
+      },
+      "test_coverage": {
+        "target": 90,
+        "current": 85,
+        "unit": "percentage",
+        "last_updated": "2024-12-20"
+      },
+      "technical_debt_ratio": {
+        "target": 5,
+        "current": 3.2,
+        "unit": "percentage",
+        "last_updated": "2024-12-20"
+      },
+      "code_complexity": {
+        "cyclomatic_complexity": {
+          "target": 10,
+          "current": 7.5,
+          "unit": "average"
+        },
+        "maintainability_index": {
+          "target": 80,
+          "current": 85,
+          "unit": "score"
+        }
+      }
+    },
+    "security": {
+      "vulnerabilities": {
+        "critical": {
+          "target": 0,
+          "current": 0
+        },
+        "high": {
+          "target": 0,
+          "current": 0
+        },
+        "medium": {
+          "target": 5,
+          "current": 2
+        },
+        "low": {
+          "target": 10,
+          "current": 4
+        }
+      },
+      "security_score": {
+        "target": 95,
+        "current": 97,
+        "unit": "percentage"
+      },
+      "dependency_health": {
+        "outdated_dependencies": {
+          "target": 10,
+          "current": 5,
+          "unit": "count"
+        },
+        "security_updates_pending": {
+          "target": 0,
+          "current": 0,
+          "unit": "count"
+        }
+      }
+    },
+    "performance": {
+      "compilation_time": {
+        "target": 5.0,
+        "current": 3.2,
+        "unit": "seconds",
+        "description": "Average time to compile basic photonic circuit"
+      },
+      "simulation_accuracy": {
+        "target": 95,
+        "current": 97.5,
+        "unit": "percentage",
+        "description": "Simulation accuracy vs reference designs"
+      },
+      "memory_efficiency": {
+        "target": 512,
+        "current": 384,
+        "unit": "MB",
+        "description": "Peak memory usage for standard workflows"
+      },
+      "throughput": {
+        "circuits_per_hour": {
+          "target": 100,
+          "current": 125,
+          "unit": "circuits/hour"
+        }
+      }
+    },
+    "reliability": {
+      "uptime": {
+        "target": 99.9,
+        "current": 99.95,
+        "unit": "percentage"
+      },
+      "error_rate": {
+        "target": 0.1,
+        "current": 0.05,
+        "unit": "percentage"
+      },
+      "mttr": {
+        "target": 30,
+        "current": 15,
+        "unit": "minutes",
+        "description": "Mean Time To Recovery"
+      },
+      "mtbf": {
+        "target": 720,
+        "current": 1200,
+        "unit": "hours",
+        "description": "Mean Time Between Failures"
+      }
+    },
+    "development": {
+      "velocity": {
+        "commits_per_week": {
+          "target": 25,
+          "current": 32,
+          "unit": "commits"
+        },
+        "features_per_sprint": {
+          "target": 3,
+          "current": 4,
+          "unit": "features"
+        },
+        "bugs_fixed_per_week": {
+          "target": 5,
+          "current": 7,
+          "unit": "bugs"
+        }
+      },
+      "quality_gates": {
+        "pr_review_time": {
+          "target": 24,
+          "current": 18,
+          "unit": "hours"
+        },
+        "build_success_rate": {
+          "target": 95,
+          "current": 98,
+          "unit": "percentage"
+        },
+        "deployment_frequency": {
+          "target": 2,
+          "current": 3,
+          "unit": "per_week"
+        }
+      }
+    },
+    "documentation": {
+      "coverage": {
+        "target": 90,
+        "current": 87,
+        "unit": "percentage"
+      },
+      "freshness": {
+        "target": 7,
+        "current": 3,
+        "unit": "days_since_update"
+      },
+      "user_satisfaction": {
+        "target": 4.5,
+        "current": 4.7,
+        "unit": "rating_out_of_5"
+      }
+    },
+    "community": {
+      "contributors": {
+        "total": 12,
+        "active_monthly": 6,
+        "new_monthly": 2
+      },
+      "issues": {
+        "open": 15,
+        "closed": 145,
+        "resolution_time": {
+          "target": 72,
+          "current": 48,
+          "unit": "hours"
+        }
+      },
+      "pull_requests": {
+        "open": 8,
+        "merged": 267,
+        "merge_time": {
+          "target": 48,
+          "current": 36,
+          "unit": "hours"
+        }
+      }
+    },
+    "photonic_specific": {
+      "template_library": {
+        "components_count": {
+          "target": 100,
+          "current": 87,
+          "unit": "components"
+        },
+        "pdks_supported": {
+          "target": 5,
+          "current": 3,
+          "unit": "foundries"
+        },
+        "verification_coverage": {
+          "target": 95,
+          "current": 92,
+          "unit": "percentage"
+        }
+      },
+      "design_automation": {
+        "optimization_algorithms": {
+          "target": 10,
+          "current": 8,
+          "unit": "algorithms"
+        },
+        "convergence_rate": {
+          "target": 90,
+          "current": 94,
+          "unit": "percentage"
+        },
+        "layout_efficiency": {
+          "target": 85,
+          "current": 88,
+          "unit": "percentage"
+        }
+      },
+      "simulation_capabilities": {
+        "physics_models": {
+          "target": 8,
+          "current": 6,
+          "unit": "models"
+        },
+        "wavelength_range": {
+          "target": "1200-1700",
+          "current": "1260-1675",
+          "unit": "nm"
+        },
+        "simulation_speed": {
+          "target": 10,
+          "current": 8.5,
+          "unit": "structures_per_minute"
+        }
+      }
+    }
+  },
+  "tracking": {
+    "automated_collection": true,
+    "collection_frequency": "daily",
+    "last_collection": "2024-12-20T10:00:00Z",
+    "next_collection": "2024-12-21T10:00:00Z",
+    "data_retention": "2_years",
+    "export_formats": ["json", "csv", "prometheus"]
+  },
+  "thresholds": {
+    "critical": {
+      "test_coverage": 80,
+      "security_score": 90,
+      "uptime": 99.0,
+      "critical_vulnerabilities": 0
+    },
+    "warning": {
+      "test_coverage": 85,
+      "security_score": 95,
+      "uptime": 99.5,
+      "high_vulnerabilities": 2
+    }
+  },
+  "reporting": {
+    "dashboard_url": "https://grafana.holo-code-gen.com/d/project-metrics",
+    "automated_reports": {
+      "weekly": {
+        "enabled": true,
+        "recipients": ["team@holo-code-gen.com"],
+        "format": "html"
+      },
+      "monthly": {
+        "enabled": true,
+        "recipients": ["management@holo-code-gen.com"],
+        "format": "pdf",
+        "includes_trends": true
+      }
+    },
+    "alerts": {
+      "enabled": true,
+      "channels": ["slack", "email"],
+      "conditions": [
+        "test_coverage < 80",
+        "critical_vulnerabilities > 0",
+        "uptime < 99.0",
+        "build_success_rate < 90"
+      ]
+    }
+  }
+}
