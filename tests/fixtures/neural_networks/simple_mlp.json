@@ -1,0 +1,74 @@
+{
+  "name": "simple_mlp",
+  "description": "Simple 3-layer MLP for MNIST classification",
+  "version": "1.0",
+  "framework": "pytorch",
+  "input_shape": [784],
+  "output_shape": [10],
+  "layers": [
+    {
+      "name": "fc1",
+      "type": "linear",
+      "input_size": 784,
+      "output_size": 128,
+      "activation": "relu",
+      "weights": {
+        "shape": [784, 128],
+        "initialization": "xavier_uniform",
+        "sparsity": 0.0
+      },
+      "bias": {
+        "shape": [128],
+        "initialization": "zeros"
+      }
+    },
+    {
+      "name": "fc2",
+      "type": "linear", 
+      "input_size": 128,
+      "output_size": 64,
+      "activation": "relu",
+      "weights": {
+        "shape": [128, 64],
+        "initialization": "xavier_uniform",
+        "sparsity": 0.0
+      },
+      "bias": {
+        "shape": [64],
+        "initialization": "zeros"
+      }
+    },
+    {
+      "name": "fc3",
+      "type": "linear",
+      "input_size": 64,
+      "output_size": 10,
+      "activation": "softmax",
+      "weights": {
+        "shape": [64, 10],
+        "initialization": "xavier_uniform",
+        "sparsity": 0.0
+      },
+      "bias": {
+        "shape": [10],
+        "initialization": "zeros"
+      }
+    }
+  ],
+  "total_parameters": 110858,
+  "computational_complexity": {
+    "operations": 110858,
+    "multiply_accumulate": 55429
+  },
+  "photonic_requirements": {
+    "min_wavelengths": 1,
+    "max_optical_path": 50.0,
+    "power_budget": 100.0,
+    "area_budget": 25.0
+  },
+  "expected_performance": {
+    "accuracy": 0.98,
+    "inference_time_ms": 0.1,
+    "energy_per_inference_pj": 100
+  }
+}
