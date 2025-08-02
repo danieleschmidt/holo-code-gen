@@ -1,0 +1,52 @@
+# Test simulation configuration for Holo-Code-Gen
+
+simulation:
+  backend: "mock"  # Use mock backend for testing
+  resolution: 10   # Lower resolution for faster tests
+  pml_layers: 5
+  wavelength_range: [1545, 1555]  # Narrow range for speed
+  convergence_threshold: 1e-3      # Relaxed for testing
+  max_iterations: 1000             # Limited for speed
+  timeout: 30                      # seconds
+  
+optical:
+  default_wavelength: 1550.0
+  refractive_indices:
+    silicon: 3.48
+    silicon_nitride: 2.0
+    silicon_dioxide: 1.44
+    air: 1.0
+  
+thermal:
+  enabled: false  # Disable for unit tests
+  ambient_temperature: 300  # K
+  thermal_conductivity:
+    silicon: 150  # W/m·K
+    
+process:
+  name: "test_process"
+  waveguide_width: 450    # nm
+  waveguide_height: 220   # nm
+  min_feature_size: 100   # nm
+  grid_resolution: 10     # nm
+  
+components:
+  ring_resonator:
+    default_radius: 10.0    # μm
+    q_factor_range: [1000, 50000]
+    coupling_range: [0.1, 0.9]
+    
+  mzi:
+    default_length: 100.0   # μm
+    phase_efficiency: 1.0   # π/V
+    extinction_ratio: 20    # dB
+    
+  waveguide:
+    loss_coefficient: 0.1   # dB/cm
+    bend_loss: 0.01        # dB per 90° turn
+    
+testing:
+  mock_simulation_delay: 0.1  # seconds
+  generate_fake_data: true
+  validate_inputs: true
+  error_injection: false
