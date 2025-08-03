@@ -1,178 +1,265 @@
 #!/bin/bash
 
-# Holo-Code-Gen Development Container Post-Creation Script
-
+# Holo-Code-Gen Development Environment Setup
 set -e
 
 echo "🚀 Setting up Holo-Code-Gen development environment..."
 
-# Upgrade pip and install build tools
-echo "📦 Upgrading pip and installing build tools..."
-python -m pip install --upgrade pip setuptools wheel
+# Update system packages
+echo "📦 Updating system packages..."
+sudo apt-get update
+sudo apt-get install -y \
+    build-essential \
+    curl \
+    wget \
+    git \
+    vim \
+    htop \
+    tree \
+    jq \
+    graphviz \
+    libgl1-mesa-glx \
+    libglib2.0-0 \
+    libsm6 \
+    libxext6 \
+    libxrender-dev \
+    libgomp1
 
-# Install the project in development mode with all dependencies
-echo "🔧 Installing Holo-Code-Gen in development mode..."
-pip install -e ".[dev,simulation,foundry]"
+# Install Python dependencies
+echo "🐍 Installing Python dependencies..."
+pip install --upgrade pip setuptools wheel
 
-# Install additional development tools
-echo "🛠️  Installing additional development tools..."
+# Install project in development mode
+echo "⚙️ Installing holo-code-gen in development mode..."
+pip install -e ".[dev]"
+
+# Install additional scientific computing tools
+echo "🧮 Installing scientific computing tools..."
 pip install \
-    pre-commit \
     jupyter \
-    ipykernel \
-    notebook \
     jupyterlab \
-    sphinx-autobuild \
-    mkdocs \
-    mkdocs-material
+    ipywidgets \
+    plotly \
+    seaborn \
+    scikit-learn \
+    opencv-python-headless
 
-# Set up pre-commit hooks
+# Setup pre-commit hooks
 echo "🪝 Setting up pre-commit hooks..."
 pre-commit install
 pre-commit install --hook-type commit-msg
 
-# Install system dependencies for photonic simulation
-echo "📡 Installing system dependencies..."
-sudo apt-get update && sudo apt-get install -y \
-    build-essential \
-    gfortran \
-    libopenmpi-dev \
-    openmpi-bin \
-    libhdf5-openmpi-dev \
-    libfftw3-dev \
-    libgsl-dev \
-    libblas-dev \
-    liblapack-dev \
-    pkg-config \
-    git-lfs
+# Create necessary directories
+echo "📁 Creating project directories..."
+mkdir -p data/models
+mkdir -p data/circuits
+mkdir -p data/benchmarks
+mkdir -p output/gds
+mkdir -p output/simulation
+mkdir -p logs
 
-# Initialize git-lfs for large files
-echo "📂 Initializing Git LFS..."
-git lfs install
-
-# Create useful directories
-echo "📁 Creating development directories..."
-mkdir -p \
-    scratch \
-    notebooks \
-    experiments \
-    benchmarks \
-    test_outputs \
-    simulation_data
-
-# Set up Jupyter kernel
-echo "🪐 Setting up Jupyter kernel..."
-python -m ipykernel install --user --name holo-code-gen --display-name "Holo-Code-Gen"
-
-# Generate initial documentation
-echo "📚 Building initial documentation..."
-if [ -f "docs/conf.py" ]; then
-    cd docs && make html && cd ..
-fi
-
-# Run initial tests to verify setup
-echo "🧪 Running initial test suite..."
-python -m pytest tests/ -v --tb=short || echo "⚠️  Some tests failed - this is expected for initial setup"
-
-# Create useful aliases
-echo "🔗 Setting up development aliases..."
-cat >> ~/.bashrc << 'EOF'
-
-# Holo-Code-Gen development aliases
-alias hcg='holo-code-gen'
-alias hcg-test='python -m pytest'
-alias hcg-lint='ruff check . && mypy holo_code_gen'
-alias hcg-format='black . && ruff --fix .'
-alias hcg-docs='cd docs && sphinx-autobuild . _build/html --host 0.0.0.0 --port 8080'
-alias hcg-notebook='jupyter lab --ip=0.0.0.0 --port=8888 --no-browser --allow-root'
-alias hcg-clean='find . -type d -name "__pycache__" -exec rm -rf {} + && find . -name "*.pyc" -delete'
-
-# Useful environment variables
-export HOLO_CODE_GEN_DEBUG=1
-export HOLO_CODE_GEN_LOG_LEVEL=DEBUG
-EOF
-
-# Set up zsh aliases if zsh is available
-if [ -f ~/.zshrc ]; then
-    cat >> ~/.zshrc << 'EOF'
-
-# Holo-Code-Gen development aliases
-alias hcg='holo-code-gen'
-alias hcg-test='python -m pytest'
-alias hcg-lint='ruff check . && mypy holo_code_gen'
-alias hcg-format='black . && ruff --fix .'
-alias hcg-docs='cd docs && sphinx-autobuild . _build/html --host 0.0.0.0 --port 8080'
-alias hcg-notebook='jupyter lab --ip=0.0.0.0 --port=8888 --no-browser --allow-root'
-alias hcg-clean='find . -type d -name "__pycache__" -exec rm -rf {} + && find . -name "*.pyc" -delete'
-
-# Useful environment variables
-export HOLO_CODE_GEN_DEBUG=1
-export HOLO_CODE_GEN_LOG_LEVEL=DEBUG
-EOF
-fi
-
-# Set up git configuration for development
-echo "⚙️  Configuring git for development..."
-git config --global pull.rebase false
-git config --global init.defaultBranch main
-git config --global core.autocrlf input
-
-# Create sample environment file
-echo "🔐 Creating sample environment configuration..."
-cat > .env.example << 'EOF'
+# Setup environment file
+echo "🔧 Creating environment configuration..."
+cat > .env.example << EOF
 # Holo-Code-Gen Environment Configuration
 
 # Development settings
-HOLO_CODE_GEN_DEBUG=true
-HOLO_CODE_GEN_LOG_LEVEL=DEBUG
-HOLO_CODE_GEN_PROFILE=false
+DEVELOPMENT=true
+DEBUG=true
+LOG_LEVEL=INFO
 
-# Simulation settings
-HOLO_CODE_GEN_SIMULATION_BACKEND=meep
-HOLO_CODE_GEN_SIMULATION_THREADS=4
-HOLO_CODE_GEN_SIMULATION_MEMORY_LIMIT=8GB
+# Photonic simulation settings
+MEEP_ENABLED=false
+FDTD_SOLVER=meep
+DEFAULT_WAVELENGTH=1550
+DEFAULT_MATERIAL=silicon_nitride
 
 # Template library settings
-HOLO_CODE_GEN_TEMPLATE_PATH=./templates
-HOLO_CODE_GEN_IMEC_LICENSE_KEY=your_license_key_here
-HOLO_CODE_GEN_CUSTOM_TEMPLATE_PATH=./custom_templates
-
-# Foundry PDK settings
-HOLO_CODE_GEN_PDK_PATH=./pdk
-HOLO_CODE_GEN_DEFAULT_PDK=IMEC_SiN_220nm
-HOLO_CODE_GEN_GDS_PRECISION=1  # nm
+IMEC_LIBRARY_PATH=./templates/imec
+CUSTOM_LIBRARY_PATH=./templates/custom
 
 # Performance settings
-HOLO_CODE_GEN_CACHE_ENABLED=true
-HOLO_CODE_GEN_CACHE_SIZE=1GB
-HOLO_CODE_GEN_PARALLEL_JOBS=auto
+MAX_THREADS=4
+CACHE_ENABLED=true
+CACHE_SIZE=1000
+
+# Export settings
+DEFAULT_EXPORT_FORMAT=gds
+GDS_PRECISION=1e-9
+NETLIST_FORMAT=spice
 
 # Security settings
-HOLO_CODE_GEN_SAFE_MODE=true
-HOLO_CODE_GEN_ALLOW_CUSTOM_CODE=false
-HOLO_CODE_GEN_AUDIT_LOG=true
-
-# Integration settings
-HOLO_CODE_GEN_KLAYOUT_PATH=/usr/local/bin/klayout
-HOLO_CODE_GEN_MEEP_PATH=/usr/local/bin/meep
-HOLO_CODE_GEN_GDSTK_PRECISION=1e-9
+ALLOW_CUSTOM_TEMPLATES=true
+VALIDATE_IMPORTS=true
 EOF
 
-# Print setup completion message
+# Create development scripts
+echo "📝 Creating development scripts..."
+mkdir -p scripts/dev
+
+cat > scripts/dev/run_tests.sh << 'EOF'
+#!/bin/bash
+set -e
+
+echo "🧪 Running test suite..."
+
+# Unit tests
+echo "Running unit tests..."
+pytest tests/unit/ -v --cov=holo_code_gen --cov-report=html
+
+# Integration tests
+echo "Running integration tests..."
+pytest tests/integration/ -v
+
+# Performance tests
+echo "Running performance tests..."
+pytest tests/performance/ -v -m "not slow"
+
+# Check coverage
+echo "Generating coverage report..."
+coverage report --show-missing
+
+echo "✅ All tests completed!"
+EOF
+
+cat > scripts/dev/lint_code.sh << 'EOF'
+#!/bin/bash
+set -e
+
+echo "🔍 Running code quality checks..."
+
+# Format with black
+echo "Formatting code with black..."
+black holo_code_gen/ tests/ examples/
+
+# Sort imports
+echo "Sorting imports with ruff..."
+ruff --fix holo_code_gen/ tests/ examples/
+
+# Lint with ruff
+echo "Linting with ruff..."
+ruff check holo_code_gen/ tests/ examples/
+
+# Type checking with mypy
+echo "Type checking with mypy..."
+mypy holo_code_gen/
+
+# Security scanning with bandit
+echo "Security scanning with bandit..."
+bandit -r holo_code_gen/ -c security/configs/bandit.yml
+
+echo "✅ Code quality checks completed!"
+EOF
+
+cat > scripts/dev/build_docs.sh << 'EOF'
+#!/bin/bash
+set -e
+
+echo "📚 Building documentation..."
+
+# Create docs build directory
+mkdir -p docs/_build
+
+# Build API documentation
+echo "Generating API documentation..."
+sphinx-apidoc -f -o docs/api holo_code_gen/
+
+# Build HTML documentation
+echo "Building HTML documentation..."
+sphinx-build docs/ docs/_build/html
+
+# Build PDF documentation (if LaTeX available)
+if command -v pdflatex &> /dev/null; then
+    echo "Building PDF documentation..."
+    sphinx-build -b latex docs/ docs/_build/latex
+    cd docs/_build/latex && make
+    cd -
+fi
+
+echo "✅ Documentation build completed!"
+echo "📖 Open docs/_build/html/index.html to view documentation"
+EOF
+
+# Make scripts executable
+chmod +x scripts/dev/*.sh
+
+# Setup Jupyter kernel
+echo "📓 Setting up Jupyter kernel..."
+python -m ipykernel install --user --name holo-code-gen --display-name "Holo-Code-Gen"
+
+# Create example data
+echo "📊 Creating example data..."
+python -c "
+import torch
+import torch.nn as nn
+import json
+from pathlib import Path
+
+# Create example neural network
+class ExampleMLP(nn.Module):
+    def __init__(self):
+        super().__init__()
+        self.fc1 = nn.Linear(784, 128)
+        self.fc2 = nn.Linear(128, 10)
+        self.relu = nn.ReLU()
+    
+    def forward(self, x):
+        x = self.relu(self.fc1(x))
+        x = self.fc2(x)
+        return x
+
+# Save example model
+model = ExampleMLP()
+torch.save(model, 'data/models/example_mlp.pth')
+
+# Create example configuration
+config = {
+    'model_name': 'example_mlp',
+    'input_shape': [1, 784],
+    'optimization_target': 'power',
+    'power_budget': 500.0,
+    'area_budget': 50.0
+}
+
+with open('data/models/example_config.json', 'w') as f:
+    json.dump(config, f, indent=2)
+
+print('Created example model and configuration')
+"
+
+# Setup git hooks for development
+echo "🔗 Setting up git hooks..."
+cat > .git/hooks/pre-push << 'EOF'
+#!/bin/bash
+set -e
+
+echo "🚀 Running pre-push checks..."
+
+# Run quick tests
+pytest tests/unit/ -x --tb=short
+
+# Check code quality
+ruff check holo_code_gen/
+mypy holo_code_gen/ --no-error-summary
+
+echo "✅ Pre-push checks passed!"
+EOF
+
+chmod +x .git/hooks/pre-push
+
+# Final setup message
 echo ""
-echo "✅ Holo-Code-Gen development environment setup complete!"
+echo "🎉 Development environment setup complete!"
 echo ""
-echo "🎯 Next steps:"
-echo "   1. Copy .env.example to .env and configure your settings"
-echo "   2. Run 'hcg-test' to run the test suite"
-echo "   3. Run 'hcg-docs' to start the documentation server"
-echo "   4. Run 'hcg-notebook' to start Jupyter Lab"
-echo "   5. Check out the examples/ directory for getting started"
+echo "Available commands:"
+echo "  scripts/dev/run_tests.sh    - Run test suite"
+echo "  scripts/dev/lint_code.sh    - Run code quality checks"
+echo "  scripts/dev/build_docs.sh   - Build documentation"
+echo "  holo-code-gen --help        - Show CLI help"
+echo "  jupyter lab                 - Start Jupyter Lab"
 echo ""
-echo "🔗 Useful commands:"
-echo "   hcg --help           Show CLI help"
-echo "   hcg-lint             Run linting and type checking"
-echo "   hcg-format           Format code with black and ruff"
-echo "   hcg-clean            Clean up Python cache files"
+echo "Example usage:"
+echo "  holo-code-gen compile data/models/example_mlp.pth"
+echo "  holo-code-gen list-templates"
 echo ""
-echo "Happy coding! 🧬✨"
+echo "Happy coding! 🚀"

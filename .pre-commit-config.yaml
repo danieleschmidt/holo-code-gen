@@ -1,127 +1,127 @@
-# Pre-commit hooks for Holo-Code-Gen
-# See https://pre-commit.com for more information
-
 repos:
-  # Standard pre-commit hooks
   - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v4.5.0
+    rev: v4.4.0
     hooks:
       - id: trailing-whitespace
-        exclude: '\.md$'
       - id: end-of-file-fixer
-        exclude: '\.ipynb$'
       - id: check-yaml
-        exclude: '^docs/.*\.ya?ml$'
-      - id: check-toml
-      - id: check-json
-      - id: check-merge-conflict
       - id: check-added-large-files
-        args: ['--maxkb=10240']  # 10MB
+        args: ['--maxkb=1000']
+      - id: check-merge-conflict
+      - id: check-json
+      - id: check-toml
+      - id: check-xml
+      - id: debug-statements
+      - id: check-docstring-first
       - id: check-case-conflict
       - id: check-executables-have-shebangs
-      - id: check-shebang-scripts-are-executable
-      - id: debug-statements
-      - id: detect-private-key
-      - id: check-docstring-first
+      - id: mixed-line-ending
 
-  # Python code formatting with ruff
-  - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.1.7
+  - repo: https://github.com/psf/black
+    rev: 23.7.0
+    hooks:
+      - id: black
+        language_version: python3.11
+        args: [--line-length=88]
+
+  - repo: https://github.com/charliermarsh/ruff-pre-commit
+    rev: v0.0.287
     hooks:
       - id: ruff
         args: [--fix, --exit-non-zero-on-fix]
-      - id: ruff-format
 
-  # Python type checking
   - repo: https://github.com/pre-commit/mirrors-mypy
-    rev: v1.7.1
+    rev: v1.5.1
     hooks:
       - id: mypy
         additional_dependencies: [types-all]
-        exclude: '^(docs/|tests/|examples/)'
-        args: [--ignore-missing-imports, --no-strict-optional]
+        args: [--ignore-missing-imports, --show-error-codes]
 
-  # Security scanning
-  - repo: https://github.com/pycqa/bandit
+  - repo: https://github.com/PyCQA/bandit
     rev: 1.7.5
     hooks:
       - id: bandit
         args: [-c, security/configs/bandit.yml]
-        exclude: '^tests/'
+        exclude: ^tests/
 
-  # Spell checking
   - repo: https://github.com/codespell-project/codespell
-    rev: v2.2.6
+    rev: v2.2.5
     hooks:
       - id: codespell
         args: [--write-changes]
-        exclude: |
-          (?x)^(
-              .*\.gds|
-              .*\.gds2|
-              .*\.spi|
-              .*\.cir|
-              .*\.ipynb
-          )$
+        exclude: \.(gds|oas|spi|cdl)$
 
-  # Jupyter notebook cleaning
-  - repo: https://github.com/kynan/nbstripout
-    rev: 0.6.1
+  - repo: https://github.com/pre-commit/mirrors-prettier
+    rev: v3.0.3
     hooks:
-      - id: nbstripout
-        args: [--extra-keys, 'metadata.kernelspec metadata.language_info.version']
+      - id: prettier
+        types_or: [yaml, json, markdown]
+        exclude: ^(.*\.json\.gz|.*\.min\.(js|css))$
 
-  # Dependency scanning
-  - repo: https://github.com/Lucas-C/pre-commit-hooks-safety
-    rev: v1.3.2
+  - repo: https://github.com/Lucas-C/pre-commit-hooks
+    rev: v1.5.4
     hooks:
-      - id: python-safety-dependencies-check
-        files: requirements.*\.txt$
+      - id: remove-tabs
+        exclude: \.mk$|Makefile$|\.go$
 
-  # Shell script linting
-  - repo: https://github.com/koalaman/shellcheck-precommit
-    rev: v0.9.0
-    hooks:
-      - id: shellcheck
-        args: [-e, SC1091]  # Disable "Not following" warnings
-
-  # Dockerfile linting
-  - repo: https://github.com/hadolint/hadolint
-    rev: v2.12.0
-    hooks:
-      - id: hadolint-docker
-        args: [--ignore, DL3008, --ignore, DL3009]
-
-  # Local custom hooks
   - repo: local
     hooks:
       - id: pytest-check
         name: pytest-check
         entry: pytest
         language: system
+        args: [tests/unit/, --tb=short, -x]
         pass_filenames: false
-        always_run: true
-        args: [--tb=short, -q]
+        always_run: false
         stages: [manual]
 
-# Global configuration
-fail_fast: false
-default_stages: [commit]
+      - id: security-check
+        name: security-check
+        entry: python
+        language: system
+        args: [-m, bandit, -r, holo_code_gen/, -f, json, -o, security-report.json]
+        pass_filenames: false
+        files: \.py$
+        always_run: false
+        stages: [manual]
 
-# Exclude patterns
-exclude: |
-  (?x)^(
-    \.git/|
-    \.pytest_cache/|
-    \.mypy_cache/|
-    __pycache__/|
-    \.venv/|
-    venv/|
-    \.tox/|
-    build/|
-    dist/|
-    .*\.egg-info/|
-    node_modules/|
-    \.devcontainer/bashrc|
-    \.devcontainer/zshrc
-  )
+      - id: docs-check
+        name: docs-check
+        entry: python
+        language: system
+        args: [-c, "import holo_code_gen; print('Imports successful')"]
+        pass_filenames: false
+        always_run: false
+        stages: [manual]
+
+      - id: circuit-validation
+        name: circuit-validation
+        description: Validate photonic circuit files
+        entry: python
+        language: system
+        args: [-c, "
+import sys
+from pathlib import Path
+for file in sys.argv[1:]:
+    if file.endswith(('.gds', '.oas')):
+        print(f'Binary file {file} - skipping validation')
+    elif file.endswith('.spi'):
+        with open(file) as f:
+            content = f.read()
+            if not content.strip().endswith('.END'):
+                print(f'Warning: {file} missing .END directive')
+        "]
+        files: \.(gds|oas|spi|cdl)$
+        stages: [manual]
+
+ci:
+  autofix_commit_msg: |
+    [pre-commit.ci] auto fixes from pre-commit.com hooks
+
+    for more information, see https://pre-commit.ci
+  autofix_prs: true
+  autoupdate_branch: ''
+  autoupdate_commit_msg: '[pre-commit.ci] pre-commit autoupdate'
+  autoupdate_schedule: weekly
+  skip: []
+  submodules: false

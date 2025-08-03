@@ -1,6 +1,6 @@
 # Byte-compiled / optimized / DLL files
 __pycache__/
-*.py[codz]
+*.py[cod]
 *$py.class
 
 # C extensions
@@ -46,7 +46,7 @@ htmlcov/
 nosetests.xml
 coverage.xml
 *.cover
-*.py.cover
+*.py,cover
 .hypothesis/
 .pytest_cache/
 cover/
@@ -94,35 +94,20 @@ ipython_config.py
 #   install all needed dependencies.
 #Pipfile.lock
 
-# UV
-#   Similar to Pipfile.lock, it is generally recommended to include uv.lock in version control.
-#   This is especially recommended for binary packages to ensure reproducibility, and is more
-#   commonly ignored for libraries.
-#uv.lock
-
 # poetry
 #   Similar to Pipfile.lock, it is generally recommended to include poetry.lock in version control.
 #   This is especially recommended for binary packages to ensure reproducibility, and is more
 #   commonly ignored for libraries.
 #   https://python-poetry.org/docs/basic-usage/#commit-your-poetrylock-file-to-version-control
 #poetry.lock
-#poetry.toml
 
 # pdm
 #   Similar to Pipfile.lock, it is generally recommended to include pdm.lock in version control.
-#   pdm recommends including project-wide configuration in pdm.toml, but excluding .pdm-python.
-#   https://pdm-project.org/en/latest/usage/project/#working-with-version-control
 #pdm.lock
-#pdm.toml
-.pdm-python
-.pdm-build/
-
-# pixi
-#   Similar to Pipfile.lock, it is generally recommended to include pixi.lock in version control.
-#pixi.lock
-#   Pixi creates a virtual environment in the .pixi directory, just like venv module creates one
-#   in the .venv directory. It is recommended not to include this directory in version control.
-.pixi
+#   pdm stores project-wide configurations in .pdm.toml, but it is recommended to not include it
+#   in version control.
+#   https://pdm.fming.dev/#use-with-ide
+.pdm.toml
 
 # PEP 582; used by e.g. github.com/David-OConnor/pyflow and github.com/pdm-project/pdm
 __pypackages__/
@@ -136,7 +121,6 @@ celerybeat.pid
 
 # Environments
 .env
-.envrc
 .venv
 env/
 venv/
@@ -170,80 +154,266 @@ cython_debug/
 
 # PyCharm
 #  JetBrains specific template is maintained in a separate JetBrains.gitignore that can
-#  be found at https://github.com/github/gitignore/blob/main/Global/JetBrains.gitignore
-#  and can be added to the global gitignore or merged into this file.  For a more nuclear
-#  option (not recommended) you can uncomment the following to ignore the entire idea folder.
-#.idea/
+#  be added to the global gitignore or merged into this project gitignore.  For a PyCharm
+#  project, it is recommended to include the JetBrains.gitignore file.
+#  https://github.com/github/gitignore/blob/main/Global/JetBrains.gitignore
+.idea/
 
-# Abstra
-# Abstra is an AI-powered process automation framework.
-# Ignore directories containing user credentials, local state, and settings.
-# Learn more at https://abstra.io/docs
-.abstra/
+# VSCode
+.vscode/
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+*.code-workspace
 
-# Visual Studio Code
-#  Visual Studio Code specific template is maintained in a separate VisualStudioCode.gitignore 
-#  that can be found at https://github.com/github/gitignore/blob/main/Global/VisualStudioCode.gitignore
-#  and can be added to the global gitignore or merged into this file. However, if you prefer, 
-#  you could uncomment the following to ignore the entire vscode folder
-# .vscode/
+# Local History for Visual Studio Code
+.history/
 
-# Ruff stuff:
-.ruff_cache/
+# Built Visual Studio Code Extensions
+*.vsix
 
-# PyPI configuration file
-.pypirc
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
 
-# Cursor
-#  Cursor is an AI-powered code editor. `.cursorignore` specifies files/directories to
-#  exclude from AI features like autocomplete and code analysis. Recommended for sensitive data
-#  refer to https://docs.cursor.com/context/ignore-files
-.cursorignore
-.cursorindexingignore
+# Icon must end with two \r
+Icon
 
-# Marimo
-marimo/_static/
-marimo/_lsp/
-__marimo__/
+# Thumbnails
+._*
 
-# Photonic design files
+# Files that might appear in the root of a volume
+.DocumentRevisions-V100
+.fseventsd
+.Spotlight-V100
+.TemporaryItems
+.Trashes
+.VolumeIcon.icns
+.com.apple.timemachine.donotpresent
+
+# Directories potentially created on remote AFP share
+.AppleDB
+.AppleDesktop
+Network Trash Folder
+Temporary Items
+.apdisk
+
+# Windows
+Thumbs.db
+Thumbs.db:encryptable
+ehthumbs.db
+ehthumbs_vista.db
+
+# Dump file
+*.stackdump
+
+# Folder config file
+[Dd]esktop.ini
+
+# Recycle Bin used on file shares
+$RECYCLE.BIN/
+
+# Windows Installer files
+*.cab
+*.msi
+*.msix
+*.msm
+*.msp
+
+# Windows shortcuts
+*.lnk
+
+# Linux
+*~
+
+# temporary files which can be created if a process still has a handle open of a deleted file
+.fuse_hidden*
+
+# KDE directory preferences
+.directory
+
+# Linux trash folder which might appear on any partition or disk
+.Trash-*
+
+# .nfs files are created when an open file is removed but is still being accessed
+.nfs*
+
+# Holo-Code-Gen specific
+
+# Simulation data
+simulation_data/
+simulation_results/
+*.h5
+*.hdf5
+
+# Generated circuit files
+output/
+circuits/
 *.gds
-*.gds2
 *.oas
+*.klayout
 *.spi
-*.cir
 *.cdl
-*.def
-*.lef
+*.spice
 
-# Simulation results
-*.wdb
-*.shm
-*.tr0
-*.ac0
+# Template cache
+template_cache/
+.template_cache
 
-# PDK files (process design kits)
+# Neural network models (large files)
+models/
+*.pth
+*.pt
+*.onnx
+*.pb
+*.h5
+
+# Optimization results
+optimization_results/
+benchmark_results/
+
+# Process design kit files (often proprietary)
 pdk/
 *.pdk
-*.tech
 
-# Foundry specific
-*.skill
-*.dfm
-*.drc
+# Foundry-specific files
+foundry_data/
+*.technology
 
-# CAD temporary files
-*.tmp
-*.bak
-
-# Security
-*.key
-*.pem
-*.p12
-*.pfx
-secrets.yaml
-config.secret.*
+# Photonic simulation files
+meep_output/
+fdtd_results/
+*.out
+*.log
 
 # Performance profiling
 *.prof
-*.profile
+profiling_results/
+
+# Temporary development files
+scratch/
+experiments/
+notebooks/checkpoints/
+temp/
+tmp/
+
+# Configuration files with secrets
+.env.local
+.env.production
+.env.development
+config.local.yml
+
+# Large data files
+data/
+datasets/
+benchmarks/
+*.csv
+*.json.gz
+*.pickle
+*.pkl
+
+# Documentation build artifacts
+docs/_build/
+docs/api/
+site/
+
+# IDE specific
+*.swp
+*.swo
+*~
+
+# Generated documentation
+api_docs/
+sphinx_docs/
+
+# Cache directories
+.cache/
+cache/
+
+# Test artifacts
+test_outputs/
+.test_cache/
+
+# Development databases
+*.db
+*.sqlite
+
+# Backup files
+*.bak
+*.backup
+*.old
+
+# Archive files
+*.tar.gz
+*.zip
+*.7z
+
+# System files
+.fuse_hidden*
+.directory
+.Trash-*
+
+# Application logs
+logs/
+*.log.*
+
+# Runtime data
+pids/
+*.pid
+*.seed
+*.lock
+
+# Optional npm/node dependencies
+node_modules/
+package-lock.json
+
+# Optional REPL history
+.node_repl_history
+
+# Output of 'npm pack'
+*.tgz
+
+# Yarn Integrity file
+.yarn-integrity
+
+# dotenv environment variables file
+.env.test
+
+# parcel-bundler cache (https://parceljs.org/)
+.parcel-cache
+
+# Next.js build output
+.next
+out
+
+# Nuxt.js build / generate output
+.nuxt
+dist
+
+# Gatsby files
+.cache/
+public
+
+# Serverless directories
+.serverless/
+
+# FuseBox cache
+.fusebox/
+
+# DynamoDB Local files
+.dynamodb/
+
+# TernJS port file
+.tern-port
+
+# Stores VSCode versions used for testing VSCode extensions
+.vscode-test
+
+# yarn v2
+.yarn/cache
+.yarn/unplugged
+.yarn/build-state.yml
+.yarn/install-state.gz
+.pnp.*

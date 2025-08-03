@@ -1,58 +1,36 @@
 {
-  // Python configuration
   "python.defaultInterpreterPath": "./venv/bin/python",
   "python.terminal.activateEnvironment": true,
-  "python.analysis.autoImportCompletions": true,
+  "python.linting.enabled": true,
+  "python.linting.pylintEnabled": false,
+  "python.linting.ruffEnabled": true,
+  "python.formatting.provider": "black",
+  "python.formatting.blackArgs": ["--line-length=88"],
+  "python.testing.pytestEnabled": true,
+  "python.testing.unittestEnabled": false,
+  "python.testing.pytestArgs": ["tests"],
   "python.analysis.typeCheckingMode": "basic",
-
-  // Formatting
+  "python.analysis.autoImportCompletions": true,
   "editor.formatOnSave": true,
-  "editor.formatOnPaste": false,
   "editor.formatOnType": false,
-  "python.formatting.provider": "none",
-
-  // Code actions
+  "editor.formatOnPaste": false,
   "editor.codeActionsOnSave": {
     "source.organizeImports": true,
     "source.fixAll.ruff": true
   },
-
-  // Linting with Ruff
-  "[python]": {
-    "editor.defaultFormatter": "charliermarsh.ruff",
-    "editor.codeActionsOnSave": {
-      "source.organizeImports.ruff": true,
-      "source.fixAll.ruff": true
-    }
-  },
-
-  // Type checking
-  "mypy-type-checker.importStrategy": "fromEnvironment",
-  "mypy-type-checker.args": [
-    "--ignore-missing-imports",
-    "--no-strict-optional"
-  ],
-
-  // Testing
-  "python.testing.pytestEnabled": true,
-  "python.testing.unittestEnabled": false,
-  "python.testing.pytestArgs": [
-    "tests",
-    "--tb=short",
-    "-v"
-  ],
-  "python.testing.autoTestDiscoverOnSaveEnabled": true,
-
-  // File associations
   "files.associations": {
-    "*.gds": "binary",
-    "*.oas": "binary",
+    "*.gds": "plaintext",
+    "*.gds2": "plaintext",
+    "*.oas": "plaintext",
     "*.spi": "spice",
     "*.cir": "spice",
-    "*.tech": "json"
+    "*.cdl": "verilog",
+    "*.def": "plaintext",
+    "*.lef": "plaintext",
+    "*.tech": "json",
+    "*.yml": "yaml",
+    "*.yaml": "yaml"
   },
-
-  // File exclusions
   "files.exclude": {
     "**/__pycache__": true,
     "**/*.pyc": true,
@@ -60,132 +38,43 @@
     "**/.mypy_cache": true,
     "**/.coverage": true,
     "**/htmlcov": true,
-    "**/.tox": true,
-    "**/build": true,
-    "**/dist": true,
-    "**/*.egg-info": true,
+    "**/.ruff_cache": true,
     "**/node_modules": true,
-    "**/.git": true
+    "**/.git": false
   },
-
-  // Search exclusions
   "search.exclude": {
     "**/node_modules": true,
     "**/bower_components": true,
-    "**/*.code-search": true,
-    "**/.git": true,
+    "**/.venv": true,
+    "**/venv": true,
     "**/__pycache__": true,
-    "**/*.pyc": true,
     "**/.pytest_cache": true,
     "**/.mypy_cache": true,
-    "**/build": true,
     "**/dist": true,
-    "**/*.egg-info": true,
-    "**/simulation_outputs": true,
-    "**/layouts": true,
-    "**/*.gds": true,
-    "**/*.oas": true
+    "**/build": true,
+    "**/*.egg-info": true
   },
-
-  // Photonic-specific settings
-  "photonic.simulation.backend": "meep",
-  "photonic.gds.precision": 1,
-  "photonic.template.path": "./templates",
-
-  // Jupyter
   "jupyter.askForKernelRestart": false,
-  "jupyter.interactiveWindow.creationMode": "perFile",
+  "jupyter.interactiveWindow.textEditor.executeSelection": true,
+  "jupyter.jupyterServerType": "local",
   "notebook.cellToolbarLocation": {
     "default": "right",
     "jupyter-notebook": "left"
   },
-
-  // Git
+  "notebook.lineNumbers": "on",
+  "terminal.integrated.env.linux": {
+    "PYTHONPATH": "${workspaceFolder}",
+    "HOLO_CODE_GEN_DEBUG": "1"
+  },
+  "terminal.integrated.env.osx": {
+    "PYTHONPATH": "${workspaceFolder}",
+    "HOLO_CODE_GEN_DEBUG": "1"
+  },
+  "terminal.integrated.env.windows": {
+    "PYTHONPATH": "${workspaceFolder}",
+    "HOLO_CODE_GEN_DEBUG": "1"
+  },
   "git.ignoreLimitWarning": true,
   "git.autofetch": true,
-  "git.confirmSync": false,
-
-  // Editor appearance
-  "editor.rulers": [88],
-  "editor.wordWrap": "on",
-  "editor.wordWrapColumn": 88,
-  "editor.tabSize": 4,
-  "editor.insertSpaces": true,
-  "editor.detectIndentation": true,
-
-  // Terminal
-  "terminal.integrated.defaultProfile.linux": "bash",
-  "terminal.integrated.defaultProfile.osx": "zsh",
-  "terminal.integrated.defaultProfile.windows": "PowerShell",
-
-  // IntelliSense
-  "editor.suggestSelection": "first",
-  "vsintellicode.modify.editor.suggestSelection": "automaticallyOverrodeDefaultValue",
-
-  // Extensions
-  "ruff.fixAll": true,
-  "ruff.organizeImports": true,
-  "ruff.lint.enable": true,
-  "ruff.format.enable": true,
-
-  // Documentation
-  "autoDocstring.docstringFormat": "google",
-  "autoDocstring.startOnNewLine": false,
-  "autoDocstring.includeExtendedSummary": true,
-
-  // Spell checking
-  "cSpell.words": [
-    "photonic",
-    "photonics",
-    "neuromorphic",
-    "holo",
-    "gdstk",
-    "klayout",
-    "meep",
-    "siepic",
-    "imec",
-    "waveguide",
-    "resonator",
-    "interferometer",
-    "modulator",
-    "photodetector",
-    "mzi",
-    "silicon",
-    "nitride",
-    "lithography",
-    "fabrication",
-    "tapeout",
-    "pytest",
-    "mypy",
-    "ruff",
-    "bandit",
-    "precommit"
-  ],
-
-  // Language-specific settings
-  "[json]": {
-    "editor.defaultFormatter": "vscode.json-language-features"
-  },
-  "[yaml]": {
-    "editor.defaultFormatter": "redhat.vscode-yaml"
-  },
-  "[toml]": {
-    "editor.defaultFormatter": "tamasfe.even-better-toml"
-  },
-  "[markdown]": {
-    "editor.defaultFormatter": "yzhang.markdown-all-in-one",
-    "editor.wordWrap": "on",
-    "editor.quickSuggestions": {
-      "comments": "off",
-      "strings": "off",
-      "other": "off"
-    }
-  },
-
-  // Workspace trust
-  "security.workspace.trust.untrustedFiles": "open",
-
-  // Performance
-  "python.analysis.memory.keepLibraryAst": true,
-  "extensions.ignoreRecommendations": false
+  "git.autoStash": true
 }
