@@ -489,12 +489,23 @@ class DesignDatabase:
             
             # Import circuit
             circuit_data = import_data['circuit']
+            
+            # Convert datetime strings back to datetime objects
+            if 'created_at' in circuit_data and isinstance(circuit_data['created_at'], str):
+                circuit_data['created_at'] = datetime.fromisoformat(circuit_data['created_at'])
+            if 'updated_at' in circuit_data and isinstance(circuit_data['updated_at'], str):
+                circuit_data['updated_at'] = datetime.fromisoformat(circuit_data['updated_at'])
+                
             circuit = CircuitModel(**circuit_data)
             circuit.id = None  # Generate new ID
             circuit_id = self.save_circuit(circuit)
             
             # Import optimization results
             for result_data in import_data.get('optimization_results', []):
+                # Convert datetime strings back to datetime objects
+                if 'created_at' in result_data and isinstance(result_data['created_at'], str):
+                    result_data['created_at'] = datetime.fromisoformat(result_data['created_at'])
+                    
                 result = OptimizationResult(**result_data)
                 result.id = None  # Generate new ID
                 result.circuit_id = circuit_id
@@ -502,6 +513,10 @@ class DesignDatabase:
             
             # Import simulation results
             for result_data in import_data.get('simulation_results', []):
+                # Convert datetime strings back to datetime objects
+                if 'created_at' in result_data and isinstance(result_data['created_at'], str):
+                    result_data['created_at'] = datetime.fromisoformat(result_data['created_at'])
+                    
                 result = SimulationResult(**result_data)
                 result.id = None  # Generate new ID
                 result.circuit_id = circuit_id
