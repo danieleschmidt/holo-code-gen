@@ -293,7 +293,10 @@ class PowerOptimizer(OptimizationStrategy):
         # Estimate throughput (simplified)
         num_operations = len([c for c in circuit.components 
                             if 'matrix' in c.component_type or 'multiply' in c.component_type])
-        throughput = num_operations * 1e12 / (latency * 1e-9)  # TOPS
+        if latency > 0:
+            throughput = num_operations * 1e12 / (latency * 1e-9)  # TOPS
+        else:
+            throughput = 0.0
         
         return OptimizationMetrics(
             power_consumption=total_power,
