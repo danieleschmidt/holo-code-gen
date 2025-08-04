@@ -3,17 +3,38 @@
 import logging
 from typing import Dict, Any, Optional, List, Union
 from pathlib import Path
-import torch
-import torch.nn as nn
 import numpy as np
 from dataclasses import dataclass
 
 from .templates import IMECLibrary, PhotonicComponent
 from .ir import ComputationGraph, CircuitNode
 from .optimization import OptimizationTarget
+from .exceptions import (
+    CompilationError, GraphValidationError, ComponentError,
+    ValidationError, ErrorCodes, validate_positive, validate_not_empty
+)
+from .monitoring import monitor_function, log_exceptions, get_logger, get_performance_monitor
+from .security import get_parameter_validator, get_resource_limiter, secure_operation
+
+# Optional PyTorch import for compatibility
+try:
+    import torch
+    import torch.nn as nn
+    TORCH_AVAILABLE = True
+except ImportError:
+    TORCH_AVAILABLE = False
+    # Create mock classes for type hints
+    class torch:
+        class nn:
+            class Module:
+                pass
+            Linear = Module
+            Conv2d = Module
+            ReLU = Module
+            Sigmoid = Module
 
 
-logger = logging.getLogger(__name__)
+logger = get_logger()
 
 
 @dataclass
@@ -28,11 +49,38 @@ class CompilationConfig:
     max_optical_path: float = 10.0  # mm
     power_budget: float = 1000.0  # mW
     area_budget: float = 100.0  # mm²
+    
+    def __post_init__(self):
+        """Validate configuration parameters."""
+        validate_positive(self.wavelength, "wavelength")
+        validate_positive(self.max_optical_path, "max_optical_path")
+        validate_positive(self.power_budget, "power_budget")
+        validate_positive(self.area_budget, "area_budget")
+        validate_not_empty(self.template_library, "template_library")
+        validate_not_empty(self.process, "process")
+        
+        # Validate enum-like parameters
+        valid_encodings = ["amplitude", "phase", "coherent", "incoherent"]
+        if self.input_encoding not in valid_encodings:
+            raise ValidationError(
+                f"Invalid input_encoding: {self.input_encoding}. Must be one of {valid_encodings}",
+                field="input_encoding",
+                value=self.input_encoding
+            )
+        
+        valid_detections = ["coherent", "incoherent", "single_photon"]
+        if self.output_detection not in valid_detections:
+            raise ValidationError(
+                f"Invalid output_detection: {self.output_detection}. Must be one of {valid_detections}",
+                field="output_detection",
+                value=self.output_detection
+            )
 
 
 class PhotonicCompiler:
     """Main compiler for neural networks to photonic circuits."""
     
+    @log_exceptions("compiler")
     def __init__(self, config: Optional[CompilationConfig] = None):
         """Initialize photonic compiler.
         
@@ -40,53 +88,192 @@ class PhotonicCompiler:
             config: Compilation configuration parameters
         """
         self.config = config or CompilationConfig()
-        self.template_library = IMECLibrary(self.config.template_library)
-        self._setup_logging()
         
-    def _setup_logging(self) -> None:
-        """Setup logging for compilation process."""
-        logging.basicConfig(
-            level=logging.INFO,
-            format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+        try:
+            self.template_library = IMECLibrary(self.config.template_library)
+        except Exception as e:
+            raise CompilationError(
+                f"Failed to initialize template library: {str(e)}",
+                error_code=ErrorCodes.COMPONENT_NOT_FOUND,
+                context={"template_library": self.config.template_library}
+            )
+        
+        # Initialize security components
+        self.parameter_validator = get_parameter_validator()
+        self.resource_limiter = get_resource_limiter()
+        
+        logger.info(
+            "PhotonicCompiler initialized",
+            component="compiler",
+            context={"template_library": self.config.template_library}
         )
         
+    @monitor_function("compile", "compiler")
+    @secure_operation("neural_network_compilation")
+    @log_exceptions("compiler")
     def compile(
         self, 
-        model: nn.Module,
+        model: Union['torch.torch.nn.Module', Dict[str, Any]],
         input_shape: Optional[tuple] = None,
         **kwargs
     ) -> 'PhotonicCircuit':
         """Compile neural network to photonic circuit.
         
         Args:
-            model: PyTorch neural network model
+            model: PyTorch neural network model or model specification dict
+            input_shape: Expected input tensor shape
+            **kwargs: Additional compilation parameters
+            
+        Returns:
+            Compiled photonic circuit
+            
+        Raises:
+            CompilationError: If compilation fails
+            ValidationError: If inputs are invalid
+        """
+        # Validate inputs
+        if model is None:
+            raise ValidationError(
+                "Model cannot be None",
+                field="model",
+                error_code=ErrorCodes.MISSING_REQUIRED_PARAMETER
+            )
+        
+        # Support both PyTorch models and dict specifications
+        if isinstance(model, dict):
+            if not TORCH_AVAILABLE:
+                # Use dict-based compilation when PyTorch not available
+                return self._compile_from_dict(model, input_shape, **kwargs)
+            else:
+                raise CompilationError(
+                    "Dict-based compilation not yet implemented when PyTorch is available",
+                    error_code=ErrorCodes.UNSUPPORTED_LAYER_TYPE
+                )
+        
+        if not TORCH_AVAILABLE:
+            raise CompilationError(
+                "PyTorch not available and model is not a dict specification",
+                error_code=ErrorCodes.DEPENDENCY_ERROR
+            )
+        
+        model_name = type(model).__name__
+        logger.info(
+            f"Starting compilation of {model_name}",
+            component="compiler",
+            operation="compile",
+            context={"model_type": model_name, "input_shape": input_shape}
+        )
+        
+        try:
+            # Extract computation graph
+            computation_graph = self._extract_graph(model, input_shape)
+            logger.info(
+                f"Extracted graph with {len(computation_graph.nodes)} nodes",
+                component="compiler"
+            )
+            
+            # Validate graph complexity
+            self.resource_limiter.check_graph_complexity(len(computation_graph.nodes))
+            
+            # Map to photonic components  
+            circuit_nodes = self._map_to_photonic(computation_graph)
+            logger.info(
+                f"Mapped to {len(circuit_nodes)} photonic components",
+                component="compiler"
+            )
+            
+            # Generate physical layout
+            photonic_circuit = self._generate_circuit(circuit_nodes)
+            logger.info("Generated photonic circuit layout", component="compiler")
+            
+            # Apply optimization
+            optimized_circuit = self._optimize_circuit(photonic_circuit)
+            logger.info("Applied circuit optimizations", component="compiler")
+            
+            return optimized_circuit
+            
+        except Exception as e:
+            logger.error(
+                f"Compilation failed: {str(e)}",
+                component="compiler",
+                operation="compile",
+                error=str(e)
+            )
+            
+            if isinstance(e, (CompilationError, ValidationError)):
+                raise
+            else:
+                raise CompilationError(
+                    f"Unexpected compilation error: {str(e)}",
+                    error_code=ErrorCodes.GRAPH_EXTRACTION_ERROR,
+                    context={"model_type": model_name}
+                ) from e
+    
+    def _compile_from_dict(self, model_spec: Dict[str, Any], input_shape: Optional[tuple] = None,
+                          **kwargs) -> 'PhotonicCircuit':
+        """Compile neural network from dictionary specification.
+        
+        Args:
+            model_spec: Model specification dictionary
             input_shape: Expected input tensor shape
             **kwargs: Additional compilation parameters
             
         Returns:
             Compiled photonic circuit
         """
-        logger.info(f"Starting compilation of {type(model).__name__}")
+        logger.info(
+            "Starting dict-based compilation",
+            component="compiler",
+            context={"layers": len(model_spec.get("layers", []))}
+        )
         
-        # Extract computation graph
-        computation_graph = self._extract_graph(model, input_shape)
-        logger.info(f"Extracted graph with {len(computation_graph.nodes)} nodes")
+        # Create computation graph from specification
+        graph = ComputationGraph()
         
-        # Map to photonic components  
-        circuit_nodes = self._map_to_photonic(computation_graph)
-        logger.info(f"Mapped to {len(circuit_nodes)} photonic components")
+        layers = model_spec.get("layers", [])
+        if not layers:
+            raise ValidationError(
+                "Model specification must contain layers",
+                field="layers",
+                error_code=ErrorCodes.MISSING_REQUIRED_PARAMETER
+            )
         
-        # Generate physical layout
+        # Add nodes for each layer
+        for i, layer_spec in enumerate(layers):
+            layer_type = layer_spec.get("type")
+            if not layer_type:
+                raise ValidationError(
+                    f"Layer {i} missing type",
+                    field=f"layers[{i}].type",
+                    error_code=ErrorCodes.MISSING_REQUIRED_PARAMETER
+                )
+            
+            # Validate parameters
+            parameters = layer_spec.get("parameters", {})
+            validated_params = self.parameter_validator.validate_parameters_dict(parameters)
+            
+            node = CircuitNode(
+                name=layer_spec.get("name", f"layer_{i}"),
+                node_type=layer_type,
+                parameters=validated_params,
+                input_shape=layer_spec.get("input_shape"),
+                output_shape=layer_spec.get("output_shape")
+            )
+            graph.add_node(node)
+        
+        # Add connections
+        node_list = list(graph.nodes.values())
+        for i in range(len(node_list) - 1):
+            graph.add_edge(node_list[i].name, node_list[i + 1].name)
+        
+        # Continue with standard compilation pipeline
+        circuit_nodes = self._map_to_photonic(graph)
         photonic_circuit = self._generate_circuit(circuit_nodes)
-        logger.info("Generated photonic circuit layout")
-        
-        # Apply optimization
         optimized_circuit = self._optimize_circuit(photonic_circuit)
-        logger.info("Applied circuit optimizations")
         
         return optimized_circuit
         
-    def _extract_graph(self, model: nn.Module, input_shape: Optional[tuple]) -> ComputationGraph:
+    def _extract_graph(self, model: 'torch.torch.nn.Module', input_shape: Optional[tuple]) -> ComputationGraph:
         """Extract computation graph from neural network."""
         graph = ComputationGraph()
         
@@ -114,7 +301,7 @@ class PhotonicCompiler:
         
         return graph
         
-    def _get_node_type(self, module: nn.Module) -> str:
+    def _get_node_type(self, module: torch.nn.Module) -> str:
         """Determine photonic node type for module."""
         if isinstance(module, nn.Linear):
             return "matrix_vector_multiply"
@@ -127,7 +314,7 @@ class PhotonicCompiler:
         else:
             return "unknown"
             
-    def _extract_parameters(self, module: nn.Module) -> Dict[str, Any]:
+    def _extract_parameters(self, module: torch.nn.Module) -> Dict[str, Any]:
         """Extract relevant parameters from module."""
         params = {}
         if hasattr(module, 'weight'):
@@ -140,7 +327,7 @@ class PhotonicCompiler:
             params['output_size'] = module.out_features
         return params
         
-    def _get_input_shape(self, module: nn.Module) -> Optional[tuple]:
+    def _get_input_shape(self, module: torch.nn.Module) -> Optional[tuple]:
         """Get input shape for module."""
         if hasattr(module, 'in_features'):
             return (module.in_features,)
@@ -148,7 +335,7 @@ class PhotonicCompiler:
             return (module.in_channels,)
         return None
         
-    def _get_output_shape(self, module: nn.Module) -> Optional[tuple]:
+    def _get_output_shape(self, module: torch.nn.Module) -> Optional[tuple]:
         """Get output shape for module.""" 
         if hasattr(module, 'out_features'):
             return (module.out_features,)
@@ -156,7 +343,7 @@ class PhotonicCompiler:
             return (module.out_channels,)
         return None
         
-    def _add_connections(self, graph: ComputationGraph, model: nn.Module) -> None:
+    def _add_connections(self, graph: ComputationGraph, model: torch.nn.Module) -> None:
         """Add connections between nodes in graph."""
         # Simple sequential connection for now
         nodes = list(graph.nodes.values())
@@ -255,7 +442,7 @@ class SpikingPhotonicCompiler(PhotonicCompiler):
         
     def compile(
         self, 
-        model: nn.Module,
+        model: torch.nn.Module,
         input_shape: Optional[tuple] = None,
         **kwargs
     ) -> 'PhotonicCircuit':
@@ -270,7 +457,7 @@ class SpikingPhotonicCompiler(PhotonicCompiler):
         
         return optimized_circuit
         
-    def _extract_spiking_graph(self, model: nn.Module, input_shape: Optional[tuple]) -> ComputationGraph:
+    def _extract_spiking_graph(self, model: torch.nn.Module, input_shape: Optional[tuple]) -> ComputationGraph:
         """Extract computation graph with spiking semantics."""
         # For now, use base implementation with spiking annotations
         graph = self._extract_graph(model, input_shape)
