@@ -234,6 +234,41 @@ class ResourceLimiter:
                 error_code="CIRCUIT_COMPLEXITY_EXCEEDED"
             )
     
+    def check_quantum_circuit_complexity(self, qubit_count: int, operation_count: int) -> None:
+        """Check if quantum circuit complexity is within limits.
+        
+        Args:
+            qubit_count: Number of qubits
+            operation_count: Number of quantum operations
+            
+        Raises:
+            SecurityError: If circuit is too complex
+        """
+        max_qubits = 50  # Reasonable limit for photonic quantum circuits
+        max_operations = 1000  # Maximum quantum operations
+        
+        if qubit_count > max_qubits:
+            raise SecurityError(
+                f"Too many qubits: {qubit_count}, maximum allowed: {max_qubits}",
+                error_code=ErrorCodes.RESOURCE_LIMIT_EXCEEDED
+            )
+        
+        if operation_count > max_operations:
+            raise SecurityError(
+                f"Too many operations: {operation_count}, maximum allowed: {max_operations}",
+                error_code=ErrorCodes.RESOURCE_LIMIT_EXCEEDED
+            )
+        
+        # Check combined complexity (qubits × operations)
+        complexity = qubit_count * operation_count
+        max_complexity = 10000
+        
+        if complexity > max_complexity:
+            raise SecurityError(
+                f"Circuit too complex: {complexity}, maximum allowed: {max_complexity}",
+                error_code=ErrorCodes.RESOURCE_LIMIT_EXCEEDED
+            )
+    
     def check_graph_complexity(self, num_nodes: int) -> None:
         """Check if graph complexity is within limits.
         
