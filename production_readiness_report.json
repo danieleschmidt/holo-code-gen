@@ -1,0 +1,33 @@
+{
+  "start_time": 1754413350.6672757,
+  "test_suites": {
+    "Basic Functionality": {
+      "passed": false,
+      "message": "Basic functionality test failed: name 'monitor_function' is not defined",
+      "execution_time": 0.05065202713012695
+    },
+    "Robustness & Error Handling": {
+      "passed": false,
+      "message": "Robustness test failed: name 'monitor_function' is not defined",
+      "execution_time": 0.006030559539794922
+    },
+    "Performance & Caching": {
+      "passed": false,
+      "message": "Performance test failed: name 'monitor_function' is not defined",
+      "execution_time": 0.0067174434661865234
+    },
+    "Integration & End-to-End": {
+      "passed": false,
+      "message": "Integration test failed: name 'monitor_function' is not defined",
+      "execution_time": 0.004435300827026367
+    }
+  },
+  "summary": {
+    "total_suites": 4,
+    "suites_passed": 0,
+    "suites_failed": 4,
+    "overall_pass": false,
+    "pass_rate": 0.0,
+    "total_execution_time": 0.06803154945373535
+  }
+}

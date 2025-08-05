@@ -25,6 +25,9 @@ def __getattr__(name):
     elif name == "YieldOptimizer":
         from .optimization import YieldOptimizer
         return YieldOptimizer
+    elif name == "QuantumInspiredTaskPlanner":
+        from .optimization import QuantumInspiredTaskPlanner
+        return QuantumInspiredTaskPlanner
     else:
         raise AttributeError(f"module '{__name__}' has no attribute '{name}'")
 
@@ -36,4 +39,5 @@ __all__ = [
     "PhotonicComponent",
     "PowerOptimizer",
     "YieldOptimizer",
+    "QuantumInspiredTaskPlanner",
 ]
