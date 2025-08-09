@@ -1,25 +1,25 @@
 {
-  "start_time": 1754413350.6672757,
+  "start_time": 1754756414.3241851,
   "test_suites": {
     "Basic Functionality": {
       "passed": false,
-      "message": "Basic functionality test failed: name 'monitor_function' is not defined",
-      "execution_time": 0.05065202713012695
+      "message": "Basic functionality test failed: name 'CompilationError' is not defined",
+      "execution_time": 0.09694576263427734
     },
     "Robustness & Error Handling": {
       "passed": false,
-      "message": "Robustness test failed: name 'monitor_function' is not defined",
-      "execution_time": 0.006030559539794922
+      "message": "Robustness test failed: name 'CompilationError' is not defined",
+      "execution_time": 0.00928640365600586
     },
     "Performance & Caching": {
       "passed": false,
-      "message": "Performance test failed: name 'monitor_function' is not defined",
-      "execution_time": 0.0067174434661865234
+      "message": "Performance test failed: name 'CompilationError' is not defined",
+      "execution_time": 0.0066606998443603516
     },
     "Integration & End-to-End": {
       "passed": false,
-      "message": "Integration test failed: name 'monitor_function' is not defined",
-      "execution_time": 0.004435300827026367
+      "message": "Integration test failed: name 'CompilationError' is not defined",
+      "execution_time": 0.007019758224487305
     }
   },
   "summary": {
@@ -28,6 +28,6 @@
     "suites_failed": 4,
     "overall_pass": false,
     "pass_rate": 0.0,
-    "total_execution_time": 0.06803154945373535
+    "total_execution_time": 0.11998486518859863
   }
 }
