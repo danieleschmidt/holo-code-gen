@@ -7,8 +7,12 @@ import numpy as np
 import logging
 from abc import ABC, abstractmethod
 
+from .monitoring import monitor_function, get_logger, log_exceptions, get_performance_monitor
+from .security import secure_operation, get_parameter_validator, get_resource_limiter
+from .exceptions import validate_positive, validate_not_empty, ValidationError, CompilationError
+import json
 
-logger = logging.getLogger(__name__)
+logger = get_logger()
 
 
 class OptimizationTarget(Enum):
@@ -608,9 +612,9 @@ class QuantumInspiredTaskPlanner:
         self.performance_monitor = get_performance_monitor()
         
         # High-performance caching system
-        from .performance import get_cache_manager, get_parallel_processor
+        from .performance import get_cache_manager, get_parallel_executor
         self.cache_manager = get_cache_manager()
-        self.parallel_processor = get_parallel_processor()
+        self.parallel_processor = get_parallel_executor()
         
         # Advanced optimization cache for quantum circuits
         self._circuit_cache = {}  # Cache for compiled circuits
