@@ -3,6 +3,7 @@
 from typing import Dict, List, Any, Optional, Tuple, Union
 from dataclasses import dataclass
 from enum import Enum
+import numpy
 import numpy as np
 import logging
 from abc import ABC, abstractmethod
@@ -1898,7 +1899,7 @@ class QuantumInspiredTaskPlanner:
             "converged": iteration < optimization_params["max_iterations"] - 1
         }
     
-    def _evaluate_cv_qaoa_cost(self, params: np.ndarray, 
+    def _evaluate_cv_qaoa_cost(self, params: numpy.ndarray, 
                                photonic_plan: Dict[str, Any],
                                problem_instance: Dict[str, Any]) -> float:
         """Evaluate cost function through simulated photonic measurement."""
@@ -1930,9 +1931,9 @@ class QuantumInspiredTaskPlanner:
             cost = np.sum(params**2) + 0.1 * np.sum(np.sin(params))
             return cost
     
-    def _compute_cv_qaoa_gradient(self, params: np.ndarray,
+    def _compute_cv_qaoa_gradient(self, params: numpy.ndarray,
                                   photonic_plan: Dict[str, Any],
-                                  problem_instance: Dict[str, Any]) -> np.ndarray:
+                                  problem_instance: Dict[str, Any]) -> numpy.ndarray:
         """Compute gradient using photonic parameter-shift rule."""
         gradient = np.zeros_like(params)
         eps = np.pi / 2  # Optimal shift for photonic systems
