@@ -1,25 +1,25 @@
 {
-  "start_time": 1754756414.3241851,
+  "start_time": 1755090337.6330595,
   "test_suites": {
     "Basic Functionality": {
       "passed": false,
-      "message": "Basic functionality test failed: name 'CompilationError' is not defined",
-      "execution_time": 0.09694576263427734
+      "message": "Basic functionality test failed: module 'numpy' has no attribute 'ndarray'",
+      "execution_time": 0.05439591407775879
     },
     "Robustness & Error Handling": {
       "passed": false,
-      "message": "Robustness test failed: name 'CompilationError' is not defined",
-      "execution_time": 0.00928640365600586
+      "message": "Robustness test failed: module 'numpy' has no attribute 'ndarray'",
+      "execution_time": 0.0039174556732177734
     },
     "Performance & Caching": {
       "passed": false,
-      "message": "Performance test failed: name 'CompilationError' is not defined",
-      "execution_time": 0.0066606998443603516
+      "message": "Performance test failed: module 'numpy' has no attribute 'ndarray'",
+      "execution_time": 0.004266500473022461
     },
     "Integration & End-to-End": {
       "passed": false,
-      "message": "Integration test failed: name 'CompilationError' is not defined",
-      "execution_time": 0.007019758224487305
+      "message": "Integration test failed: module 'numpy' has no attribute 'ndarray'",
+      "execution_time": 0.003950357437133789
     }
   },
   "summary": {
@@ -28,6 +28,6 @@
     "suites_failed": 4,
     "overall_pass": false,
     "pass_rate": 0.0,
-    "total_execution_time": 0.11998486518859863
+    "total_execution_time": 0.06664419174194336
   }
 }

@@ -1,6 +1,7 @@
 """Enhanced quantum algorithms for photonic quantum computing."""
 
 from typing import Dict, List, Any, Optional
+import numpy
 import numpy as np
 from .monitoring import monitor_function, get_logger
 from .security import secure_operation
@@ -97,7 +98,7 @@ class PhotonicQuantumAlgorithms:
                 error_code=ErrorCodes.INVALID_PARAMETER_VALUE
             ) from e
     
-    def _evaluate_energy(self, params: np.ndarray, hamiltonian: Dict[str, Any]) -> float:
+    def _evaluate_energy(self, params: numpy.ndarray, hamiltonian: Dict[str, Any]) -> float:
         """Simulate energy evaluation for molecular system."""
         num_qubits = hamiltonian["num_qubits"]
         
@@ -113,7 +114,7 @@ class PhotonicQuantumAlgorithms:
         
         return energy
     
-    def _compute_gradient(self, params: np.ndarray, hamiltonian: Dict[str, Any]) -> np.ndarray:
+    def _compute_gradient(self, params: numpy.ndarray, hamiltonian: Dict[str, Any]) -> numpy.ndarray:
         """Compute energy gradient using parameter shift rule."""
         gradient = np.zeros_like(params)
         shift = np.pi / 2
