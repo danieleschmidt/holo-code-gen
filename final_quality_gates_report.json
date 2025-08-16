@@ -5,13 +5,13 @@
     "failed": 0,
     "errors": 0,
     "pass_rate": 1.0,
-    "total_execution_time": 0.33508825302124023
+    "total_execution_time": 0.4455983638763428
   },
   "gate_results": [
     {
       "name": "Generation 1: Basic Functionality",
       "status": "PASSED",
-      "execution_time": 0.048020124435424805,
+      "execution_time": 0.05515027046203613,
       "details": {
         "passed": true,
         "cv_qaoa_algorithm": "cv_qaoa",
@@ -22,7 +22,7 @@
     {
       "name": "Generation 2: Robustness & Security",
       "status": "PASSED",
-      "execution_time": 0.23470020294189453,
+      "execution_time": 0.32149720191955566,
       "details": {
         "passed": true,
         "validation_errors_caught": 2,
@@ -34,10 +34,10 @@
     {
       "name": "Generation 3: Performance & Optimization",
       "status": "PASSED",
-      "execution_time": 0.003946065902709961,
+      "execution_time": 0.004888296127319336,
       "details": {
         "passed": true,
-        "hp_execution_time": 0.0030825138092041016,
+        "hp_execution_time": 0.003673076629638672,
         "cache_enabled": true,
         "optimization_enabled": true,
         "memory_usage_mb": 1.4,
@@ -47,10 +47,10 @@
     {
       "name": "Algorithm Accuracy & Correctness",
       "status": "PASSED",
-      "execution_time": 0.016371965408325195,
+      "execution_time": 0.022248029708862305,
       "details": {
         "passed": true,
-        "cv_qaoa_cost": 1.5653665555650336,
+        "cv_qaoa_cost": 1.3535136207878589,
         "cv_qaoa_solution_length": 4,
         "cv_qaoa_converged": false,
         "error_correction_rate": 2.5093313983638425e-07,
@@ -65,7 +65,7 @@
     {
       "name": "Integration & Compatibility",
       "status": "PASSED",
-      "execution_time": 0.0048732757568359375,
+      "execution_time": 0.005312681198120117,
       "details": {
         "passed": true,
         "fidelity_optimization": "photonic_fidelity_optimization",
@@ -77,28 +77,28 @@
     {
       "name": "Performance Benchmarks",
       "status": "PASSED",
-      "execution_time": 0.025410890579223633,
+      "execution_time": 0.03400921821594238,
       "details": {
         "passed": true,
         "benchmark_results": [
           {
             "problem_size": 3,
-            "execution_time": 0.004662275314331055,
+            "execution_time": 0.006359100341796875,
             "converged": false
           },
           {
             "problem_size": 5,
-            "execution_time": 0.008337736129760742,
+            "execution_time": 0.01109170913696289,
             "converged": false
           },
           {
             "problem_size": 8,
-            "execution_time": 0.012369155883789062,
+            "execution_time": 0.016503572463989258,
             "converged": false
           }
         ],
-        "avg_execution_time": 0.00845638910929362,
-        "max_execution_time": 0.012369155883789062,
+        "avg_execution_time": 0.011318127314249674,
+        "max_execution_time": 0.016503572463989258,
         "convergence_rate": 0.0,
         "performance_criteria": {
           "fast_execution": true,
@@ -110,7 +110,7 @@
     {
       "name": "Production Readiness",
       "status": "PASSED",
-      "execution_time": 0.0016956329345703125,
+      "execution_time": 0.002401590347290039,
       "details": {
         "passed": true,
         "readiness_criteria": {
@@ -136,7 +136,7 @@
     "generation_3_optimized": true,
     "quality_validation": true
   },
-  "timestamp": "2025-08-15 02:27:57",
+  "timestamp": "2025-08-16 15:58:41",
   "recommendations": [
     "System ready for production deployment with monitoring"
   ]

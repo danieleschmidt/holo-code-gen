@@ -62,10 +62,10 @@ class LogEvent:
 
 
 class MetricsCollector:
-    """Collects and manages metrics for monitoring."""
+    """Advanced metrics collector with quantum algorithm monitoring."""
     
     def __init__(self, enable_export: bool = True, export_interval: float = 60.0):
-        """Initialize metrics collector.
+        """Initialize enhanced metrics collector.
         
         Args:
             enable_export: Whether to enable metric export
@@ -77,6 +77,37 @@ class MetricsCollector:
         self._lock = threading.Lock()
         self._export_thread: Optional[threading.Thread] = None
         self._stop_export = threading.Event()
+        
+        # Advanced quantum algorithm metrics
+        self._quantum_algorithm_metrics = {
+            'enhanced_qaoa': {
+                'execution_count': 0,
+                'total_execution_time': 0.0,
+                'convergence_rate': 0.0,
+                'average_cost_improvement': 0.0,
+                'multi_objective_success_rate': 0.0
+            },
+            'vqe_plus': {
+                'execution_count': 0,
+                'total_execution_time': 0.0,
+                'average_energy_accuracy': 0.0,
+                'qng_success_rate': 0.0,
+                'adaptive_ansatz_efficiency': 0.0
+            },
+            'quantum_neural_networks': {
+                'compilation_count': 0,
+                'circuit_depth_efficiency': 0.0,
+                'parameter_optimization_success': 0.0
+            }
+        }
+        
+        # Real-time performance analytics
+        self._performance_analytics = {
+            'algorithm_comparison': {},
+            'resource_utilization': [],
+            'convergence_patterns': {},
+            'optimization_trends': {}
+        }
         
         if enable_export:
             self._start_export_thread()
@@ -155,7 +186,7 @@ class MetricsCollector:
             self._metrics.clear()
     
     def export_metrics(self) -> Dict[str, Any]:
-        """Export metrics in standardized format."""
+        """Export comprehensive metrics including quantum algorithm analytics."""
         metrics_data = []
         
         with self._lock:
@@ -164,9 +195,256 @@ class MetricsCollector:
         
         return {
             "metrics": metrics_data,
+            "quantum_algorithm_metrics": self._quantum_algorithm_metrics.copy(),
+            "performance_analytics": self._performance_analytics.copy(),
             "export_timestamp": datetime.now(timezone.utc).isoformat(),
             "total_metrics": len(metrics_data)
         }
+    
+    def record_quantum_algorithm_execution(self, algorithm_type: str, execution_data: Dict[str, Any]) -> None:
+        """Record quantum algorithm execution metrics.
+        
+        Args:
+            algorithm_type: Type of quantum algorithm (enhanced_qaoa, vqe_plus, etc.)
+            execution_data: Execution results and metrics
+        """
+        if algorithm_type not in self._quantum_algorithm_metrics:
+            # Create default structure based on algorithm type
+            if algorithm_type == 'enhanced_qaoa':
+                self._quantum_algorithm_metrics[algorithm_type] = {
+                    'execution_count': 0,
+                    'total_execution_time': 0.0,
+                    'convergence_rate': 0.0,
+                    'average_cost_improvement': 0.0,
+                    'multi_objective_success_rate': 0.0
+                }
+            elif algorithm_type == 'vqe_plus':
+                self._quantum_algorithm_metrics[algorithm_type] = {
+                    'execution_count': 0,
+                    'total_execution_time': 0.0,
+                    'average_energy_accuracy': 0.0,
+                    'qng_success_rate': 0.0,
+                    'adaptive_ansatz_efficiency': 0.0
+                }
+            else:
+                self._quantum_algorithm_metrics[algorithm_type] = {
+                    'execution_count': 0,
+                    'total_execution_time': 0.0,
+                    'average_performance': 0.0,
+                    'success_rate': 0.0
+                }
+        
+        # Update algorithm-specific metrics
+        metrics = self._quantum_algorithm_metrics[algorithm_type]
+        metrics['execution_count'] += 1
+        
+        if 'execution_time' in execution_data:
+            metrics['total_execution_time'] += execution_data['execution_time']
+        
+        # Algorithm-specific metrics
+        if algorithm_type == 'enhanced_qaoa':
+            if 'best_cost' in execution_data:
+                self._update_qaoa_metrics(execution_data)
+        elif algorithm_type == 'vqe_plus':
+            if 'best_energy' in execution_data:
+                self._update_vqe_metrics(execution_data)
+        
+        # Update performance analytics
+        self._update_performance_analytics(algorithm_type, execution_data)
+    
+    def _update_qaoa_metrics(self, execution_data: Dict[str, Any]) -> None:
+        """Update QAOA-specific metrics."""
+        metrics = self._quantum_algorithm_metrics['enhanced_qaoa']
+        
+        # Calculate convergence rate
+        convergence_data = execution_data.get('convergence_data', {})
+        if 'costs' in convergence_data and len(convergence_data['costs']) > 1:
+            initial_cost = convergence_data['costs'][0]
+            final_cost = convergence_data['costs'][-1]
+            improvement = abs(initial_cost - final_cost) / abs(initial_cost) if initial_cost != 0 else 0
+            
+            # Running average
+            current_rate = metrics.get('average_cost_improvement', 0.0)
+            count = metrics['execution_count']
+            metrics['average_cost_improvement'] = (current_rate * (count - 1) + improvement) / count
+        
+        # Multi-objective success rate
+        if 'multi_objective' in execution_data and execution_data['multi_objective']:
+            cost_components = execution_data.get('cost_components', {})
+            if len(cost_components) > 1:
+                success = all(abs(cost) < 10.0 for cost in cost_components.values())  # Threshold-based success
+                current_success = metrics.get('multi_objective_success_rate', 0.0)
+                count = metrics['execution_count']
+                metrics['multi_objective_success_rate'] = (current_success * (count - 1) + (1.0 if success else 0.0)) / count
+    
+    def _update_vqe_metrics(self, execution_data: Dict[str, Any]) -> None:
+        """Update VQE-specific metrics."""
+        metrics = self._quantum_algorithm_metrics['vqe_plus']
+        
+        # Energy accuracy (relative to expected ground state)
+        best_energy = execution_data.get('best_energy', 0.0)
+        energy_accuracy = 1.0 / (1.0 + abs(best_energy))  # Simplified accuracy metric
+        
+        current_accuracy = metrics.get('average_energy_accuracy', 0.0)
+        count = metrics['execution_count']
+        metrics['average_energy_accuracy'] = (current_accuracy * (count - 1) + energy_accuracy) / count
+        
+        # QNG success rate
+        optimization_details = execution_data.get('optimization_details', {})
+        qng_enabled = optimization_details.get('qng_enabled', False)
+        converged = execution_data.get('convergence_data', {}).get('converged', False)
+        
+        if qng_enabled:
+            current_qng_success = metrics.get('qng_success_rate', 0.0)
+            metrics['qng_success_rate'] = (current_qng_success * (count - 1) + (1.0 if converged else 0.0)) / count
+        
+        # Adaptive ansatz efficiency
+        ansatz_structure = execution_data.get('ansatz_structure', {})
+        if ansatz_structure.get('type') == 'adaptive':
+            parameter_count = ansatz_structure.get('parameter_count', 0)
+            depth = ansatz_structure.get('depth', 1)
+            efficiency = 1.0 / (1.0 + parameter_count / depth) if depth > 0 else 0.0
+            
+            current_efficiency = metrics.get('adaptive_ansatz_efficiency', 0.0)
+            metrics['adaptive_ansatz_efficiency'] = (current_efficiency * (count - 1) + efficiency) / count
+    
+    def _update_performance_analytics(self, algorithm_type: str, execution_data: Dict[str, Any]) -> None:
+        """Update performance analytics for trend analysis."""
+        timestamp = datetime.now(timezone.utc).isoformat()
+        
+        # Algorithm comparison
+        if 'algorithm_comparison' not in self._performance_analytics:
+            self._performance_analytics['algorithm_comparison'] = {}
+        
+        comparison_data = {
+            'execution_time': execution_data.get('execution_time', 0.0),
+            'timestamp': timestamp,
+            'success': execution_data.get('converged', True) or execution_data.get('convergence_data', {}).get('converged', True)
+        }
+        
+        if algorithm_type not in self._performance_analytics['algorithm_comparison']:
+            self._performance_analytics['algorithm_comparison'][algorithm_type] = []
+        
+        self._performance_analytics['algorithm_comparison'][algorithm_type].append(comparison_data)
+        
+        # Keep only recent entries (last 100)
+        if len(self._performance_analytics['algorithm_comparison'][algorithm_type]) > 100:
+            self._performance_analytics['algorithm_comparison'][algorithm_type] = \
+                self._performance_analytics['algorithm_comparison'][algorithm_type][-100:]
+        
+        # Resource utilization tracking
+        photonic_impl = execution_data.get('photonic_implementation', {})
+        if photonic_impl:
+            resource_data = {
+                'required_modes': photonic_impl.get('required_modes', 0),
+                'gate_count': photonic_impl.get('gate_count', 0),
+                'circuit_depth': photonic_impl.get('circuit_depth', 0),
+                'timestamp': timestamp
+            }
+            
+            if 'resource_utilization' not in self._performance_analytics:
+                self._performance_analytics['resource_utilization'] = []
+            
+            self._performance_analytics['resource_utilization'].append(resource_data)
+            
+            # Keep only recent entries
+            if len(self._performance_analytics['resource_utilization']) > 1000:
+                self._performance_analytics['resource_utilization'] = \
+                    self._performance_analytics['resource_utilization'][-1000:]
+    
+    def get_algorithm_performance_summary(self) -> Dict[str, Any]:
+        """Get comprehensive algorithm performance summary."""
+        summary = {
+            'quantum_algorithms': {},
+            'performance_trends': {},
+            'resource_efficiency': {},
+            'optimization_insights': {}
+        }
+        
+        # Quantum algorithm summaries
+        for algo_type, metrics in self._quantum_algorithm_metrics.items():
+            if isinstance(metrics, dict) and 'execution_count' in metrics and metrics['execution_count'] > 0:
+                avg_time = metrics['total_execution_time'] / metrics['execution_count']
+                summary['quantum_algorithms'][algo_type] = {
+                    'executions': metrics['execution_count'],
+                    'avg_execution_time': avg_time,
+                    'performance_score': self._calculate_performance_score(algo_type, metrics)
+                }
+        
+        # Performance trends
+        comparison_data = self._performance_analytics.get('algorithm_comparison', {})
+        for algo_type, executions in comparison_data.items():
+            if len(executions) >= 5:  # Need at least 5 executions for trends
+                recent_times = [e['execution_time'] for e in executions[-10:]]
+                trend = 'improving' if len(recent_times) > 1 and recent_times[-1] < recent_times[0] else 'stable'
+                summary['performance_trends'][algo_type] = {
+                    'trend': trend,
+                    'recent_avg_time': sum(recent_times) / len(recent_times),
+                    'success_rate': sum(1 for e in executions[-20:] if e['success']) / min(20, len(executions))
+                }
+        
+        # Resource efficiency analysis
+        resource_data = self._performance_analytics.get('resource_utilization', [])
+        if resource_data:
+            recent_resources = resource_data[-50:]  # Last 50 executions
+            avg_modes = sum(r['required_modes'] for r in recent_resources) / len(recent_resources)
+            avg_depth = sum(r['circuit_depth'] for r in recent_resources) / len(recent_resources)
+            
+            summary['resource_efficiency'] = {
+                'avg_required_modes': avg_modes,
+                'avg_circuit_depth': avg_depth,
+                'efficiency_score': self._calculate_efficiency_score(recent_resources)
+            }
+        
+        return summary
+    
+    def _calculate_performance_score(self, algo_type: str, metrics: Dict[str, Any]) -> float:
+        """Calculate overall performance score for an algorithm."""
+        base_score = 0.5  # Base score
+        
+        # Execution count bonus (more executions = more confidence)
+        execution_bonus = min(0.2, metrics['execution_count'] / 100.0)
+        
+        # Algorithm-specific scoring
+        if algo_type == 'enhanced_qaoa':
+            improvement_score = metrics.get('average_cost_improvement', 0.0) * 0.3
+            multi_obj_score = metrics.get('multi_objective_success_rate', 0.0) * 0.2
+            algo_score = improvement_score + multi_obj_score
+        elif algo_type == 'vqe_plus':
+            accuracy_score = metrics.get('average_energy_accuracy', 0.0) * 0.3
+            qng_score = metrics.get('qng_success_rate', 0.0) * 0.15
+            efficiency_score = metrics.get('adaptive_ansatz_efficiency', 0.0) * 0.15
+            algo_score = accuracy_score + qng_score + efficiency_score
+        else:
+            algo_score = 0.0
+        
+        # Time penalty (faster is better)
+        avg_time = metrics['total_execution_time'] / metrics['execution_count']
+        time_penalty = min(0.1, avg_time / 100.0)  # Penalty for slow execution
+        
+        final_score = base_score + execution_bonus + algo_score - time_penalty
+        return max(0.0, min(1.0, final_score))  # Clamp to [0, 1]
+    
+    def _calculate_efficiency_score(self, resource_data: List[Dict[str, Any]]) -> float:
+        """Calculate resource efficiency score."""
+        if not resource_data:
+            return 0.0
+        
+        # Efficiency based on modes per gate and depth per mode ratios
+        efficiency_scores = []
+        for data in resource_data:
+            modes = data.get('required_modes', 1)
+            gates = data.get('gate_count', 1)
+            depth = data.get('circuit_depth', 1)
+            
+            # Lower ratios are better (more efficient)
+            gate_efficiency = 1.0 / (1.0 + gates / modes) if modes > 0 else 0.0
+            depth_efficiency = 1.0 / (1.0 + depth / modes) if modes > 0 else 0.0
+            
+            combined_efficiency = (gate_efficiency + depth_efficiency) / 2.0
+            efficiency_scores.append(combined_efficiency)
+        
+        return sum(efficiency_scores) / len(efficiency_scores)
     
     def _start_export_thread(self) -> None:
         """Start background thread for metric export."""
