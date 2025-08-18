@@ -1076,6 +1076,120 @@ class QuantumInspiredTaskPlanner:
                 
         return optimized_entanglement
 
+    def _sequential_plan_quantum_circuit(self, quantum_algorithm: Dict[str, Any],
+                                       qubit_count: int, quantum_ops: List[Dict[str, Any]]) -> Dict[str, Any]:
+        """Plan quantum circuit using sequential processing.
+        
+        Args:
+            quantum_algorithm: Quantum algorithm specification
+            qubit_count: Number of qubits
+            quantum_ops: Quantum operations
+            
+        Returns:
+            Photonic implementation plan
+        """
+        import time
+        
+        start_time = time.time()
+        
+        # Sequential planning
+        photonic_qubits = self._plan_photonic_qubits(qubit_count)
+        gate_sequence = self._map_quantum_gates(quantum_ops)
+        entanglement_scheme = self._plan_entanglement(qubit_count)
+        measurement_scheme = self._plan_measurement(quantum_algorithm.get("measurements", []))
+        coherence_optimization = self._optimize_coherence(quantum_ops)
+        
+        end_time = time.time()
+        sequential_time = (end_time - start_time) * 1000  # ms
+        
+        photonic_plan = {
+            "qubits": qubit_count,
+            "photonic_qubits": photonic_qubits,
+            "gate_sequence": gate_sequence,
+            "entanglement_scheme": entanglement_scheme,
+            "measurement_scheme": measurement_scheme,
+            "coherence_optimization": coherence_optimization,
+            "planning_metadata": {
+                "timestamp": time.strftime('%Y-%m-%d %H:%M:%S'),
+                "planner_version": "1.0.0",
+                "validation_passed": True,
+                "resource_usage": self._estimate_resource_usage(qubit_count, len(quantum_ops)),
+                "parallel_processing": False,
+                "planning_time_ms": sequential_time
+            }
+        }
+        
+        return photonic_plan
+
+    def _estimate_resource_usage(self, qubit_count: int, operation_count: int) -> Dict[str, Any]:
+        """Estimate resource usage for quantum circuit implementation."""
+        return {
+            "photonic_components": qubit_count * 2 + operation_count,
+            "estimated_power_mw": qubit_count * 0.5 + operation_count * 0.1,
+            "estimated_area_mm2": qubit_count * 0.01 + operation_count * 0.001,
+            "memory_usage_mb": max(1, qubit_count * operation_count * 0.001)
+        }
+
+    def _validate_photonic_plan(self, photonic_plan: Dict[str, Any]) -> None:
+        """Validate the generated photonic implementation plan.
+        
+        Args:
+            photonic_plan: Photonic implementation plan to validate
+            
+        Raises:
+            ValidationError: If the plan is invalid
+        """
+        # Validate required fields
+        required_fields = ["qubits", "photonic_qubits", "gate_sequence", "entanglement_scheme"]
+        for field in required_fields:
+            if field not in photonic_plan:
+                from .exceptions import ValidationError, ErrorCodes
+                raise ValidationError(
+                    f"Photonic plan missing required field: {field}",
+                    field=field,
+                    error_code=ErrorCodes.MISSING_REQUIRED_FIELD
+                )
+        
+        # Validate qubit count consistency
+        qubit_count = photonic_plan["qubits"]
+        photonic_qubits = photonic_plan["photonic_qubits"]
+        if len(photonic_qubits) != qubit_count:
+            from .exceptions import ValidationError, ErrorCodes
+            raise ValidationError(
+                f"Photonic qubit count mismatch: expected {qubit_count}, got {len(photonic_qubits)}",
+                field="photonic_qubits",
+                error_code=ErrorCodes.INVALID_PARAMETER_VALUE
+            )
+        
+        # Validate gate sequence
+        gate_sequence = photonic_plan["gate_sequence"]
+        if not isinstance(gate_sequence, list):
+            from .exceptions import ValidationError, ErrorCodes
+            raise ValidationError(
+                "Gate sequence must be a list",
+                field="gate_sequence",
+                error_code=ErrorCodes.INVALID_PARAMETER_TYPE
+            )
+
+    def _calculate_total_fidelity(self, gate_sequence: List[Dict[str, Any]]) -> float:
+        """Calculate total fidelity for a gate sequence.
+        
+        Args:
+            gate_sequence: List of quantum gates
+            
+        Returns:
+            Overall fidelity estimate
+        """
+        if not gate_sequence:
+            return 1.0
+        
+        total_fidelity = 1.0
+        for gate in gate_sequence:
+            gate_fidelity = gate.get("fidelity", 0.95)
+            total_fidelity *= gate_fidelity
+        
+        return total_fidelity
+
 
 class PhotonicQuantumOptimizer:
     """Advanced optimizer specifically for photonic quantum circuits."""
