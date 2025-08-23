@@ -615,6 +615,13 @@ class QuantumNeuralNetworkEnhancer:
         state_vector = quantum_state['state_vector']
         probabilities = np.abs(state_vector)**2
         
+        # Normalize probabilities to ensure they sum to 1
+        prob_sum = np.sum(probabilities)
+        if prob_sum > 0:
+            probabilities = probabilities / prob_sum
+        else:
+            probabilities = np.ones(len(probabilities)) / len(probabilities)
+        
         # Sample measurements
         measurements = []
         for _ in range(min(self.measurement_shots, 100)):  # Limit for demonstration
