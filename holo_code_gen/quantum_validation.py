@@ -235,8 +235,13 @@ class QuantumParameterValidator:
     def _validate_resource_limits(self, problem_graph: Dict[str, Any], depth: int, 
                                  max_iterations: int, validation_results: Dict[str, Any]) -> bool:
         """Validate overall resource consumption limits."""
-        num_nodes = len(problem_graph["nodes"])
-        num_edges = len(problem_graph["edges"])
+        # Handle case where problem_graph might be an integer (number of qubits)
+        if isinstance(problem_graph, int):
+            num_nodes = problem_graph
+            num_edges = problem_graph - 1  # Conservative estimate
+        else:
+            num_nodes = len(problem_graph.get("nodes", []))
+            num_edges = len(problem_graph.get("edges", []))
         
         # Estimate computational complexity
         complexity_estimate = num_nodes * depth * max_iterations + num_edges * depth

@@ -406,10 +406,13 @@ class PhotonicQuantumAlgorithms:
             if hasattr(self.health_monitor, 'error_counts'):
                 self.health_monitor.error_counts["cv_qaoa"] = self.health_monitor.error_counts.get("cv_qaoa", 0) + 1
             
+            # Handle problem_graph being an integer (number of qubits)
+            problem_size = problem_graph if isinstance(problem_graph, int) else len(problem_graph.get("nodes", []))
+            
             raise CompilationError(
                 f"CV-QAOA computation failed: {str(e)}",
                 error_code=ErrorCodes.ALGORITHM_EXECUTION_ERROR,
-                context={"execution_time": execution_time, "problem_size": len(problem_graph.get("nodes", []))}
+                context={"execution_time": execution_time, "problem_size": problem_size}
             ) from e
 
     @monitor_function("cv_qaoa_high_performance", "quantum_algorithms")
