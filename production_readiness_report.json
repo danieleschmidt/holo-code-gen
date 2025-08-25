@@ -1,33 +1,33 @@
 {
-  "start_time": 1755090337.6330595,
+  "start_time": 1756160723.889997,
   "test_suites": {
     "Basic Functionality": {
       "passed": false,
-      "message": "Basic functionality test failed: module 'numpy' has no attribute 'ndarray'",
-      "execution_time": 0.05439591407775879
+      "message": "Basic functionality test failed: 'QuantumInspiredTaskPlanner' object has no attribute '_plan_error_correction'",
+      "execution_time": 0.07074904441833496
     },
     "Robustness & Error Handling": {
-      "passed": false,
-      "message": "Robustness test failed: module 'numpy' has no attribute 'ndarray'",
-      "execution_time": 0.0039174556732177734
+      "passed": true,
+      "message": "All robustness tests passed",
+      "execution_time": 0.00164031982421875
     },
     "Performance & Caching": {
       "passed": false,
-      "message": "Performance test failed: module 'numpy' has no attribute 'ndarray'",
-      "execution_time": 0.004266500473022461
+      "message": "Performance test failed: 'QuantumInspiredTaskPlanner' object has no attribute 'get_cache_statistics'",
+      "execution_time": 0.0008108615875244141
     },
     "Integration & End-to-End": {
       "passed": false,
-      "message": "Integration test failed: module 'numpy' has no attribute 'ndarray'",
-      "execution_time": 0.003950357437133789
+      "message": "Integration test failed: 'QuantumInspiredTaskPlanner' object has no attribute '_plan_error_correction'",
+      "execution_time": 0.0005428791046142578
     }
   },
   "summary": {
     "total_suites": 4,
-    "suites_passed": 0,
-    "suites_failed": 4,
+    "suites_passed": 1,
+    "suites_failed": 3,
     "overall_pass": false,
-    "pass_rate": 0.0,
-    "total_execution_time": 0.06664419174194336
+    "pass_rate": 0.25,
+    "total_execution_time": 0.07381772994995117
   }
 }
