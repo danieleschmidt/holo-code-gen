@@ -1,86 +1,66 @@
 {
-  "start_time": 1755090373.5261083,
+  "start_time": 1756261764.4554625,
   "gates": {
     "QG1": {
       "gate_name": "Basic Functionality",
-      "tests_passed": 7,
-      "tests_failed": 0,
+      "tests_passed": 4,
+      "tests_failed": 1,
       "details": [
         "\u2705 Basic circuit planning: PASSED",
         "\u2705 Photonic qubit mapping: PASSED",
         "\u2705 Quantum gate mapping: PASSED",
         "\u2705 Entanglement planning: PASSED",
-        "\u2705 Circuit optimization: PASSED",
-        "\u2705 Coherence analysis: PASSED",
-        "\u2705 Complex algorithm planning: PASSED"
+        "\u274c Exception in basic functionality: 'QuantumInspiredTaskPlanner' object has no attribute '_plan_error_correction'"
       ],
-      "overall_pass": true,
-      "pass_rate": 1.0,
-      "execution_time": 0.0023245811462402344,
+      "overall_pass": false,
+      "pass_rate": 0.8,
+      "execution_time": 0.05115675926208496,
       "gate_code": "QG1"
     },
     "QG2": {
       "gate_name": "Robustness & Reliability",
-      "tests_passed": 7,
-      "tests_failed": 2,
+      "tests_passed": 0,
+      "tests_failed": 1,
       "details": [
-        "\u274c Initialization Validation: FAILED - ",
-        "\u2705 Input Validation: PASSED",
-        "\u2705 Resource Limits: PASSED",
-        "\u2705 Plan Validation: PASSED",
-        "\u274c Statistics Tracking: FAILED - ",
-        "\u2705 Health Check: PASSED",
-        "\u2705 Error Recovery: PASSED",
-        "\u2705 Security Integration: PASSED",
-        "\u2705 Error Handling: PASSED"
+        "\u274c Exception in robustness testing: name 'TestQuantumTaskPlannerRobustness' is not defined"
       ],
       "overall_pass": false,
-      "pass_rate": 0.7777777777777778,
-      "execution_time": 0.006185293197631836,
+      "pass_rate": 0.0,
+      "execution_time": 0.0023107528686523438,
       "gate_code": "QG2"
     },
     "QG3": {
       "gate_name": "Performance & Scaling",
-      "tests_passed": 6,
+      "tests_passed": 0,
       "tests_failed": 1,
       "details": [
-        "\u274c Caching Performance: FAILED - ",
-        "\u2705 Memory Management: PASSED",
-        "\u2705 Cache Warmup: PASSED",
-        "\u2705 Concurrent Access: PASSED",
-        "\u2705 Performance Metrics: PASSED",
-        "\u2705 Planning Speed: PASSED (2.4ms)",
-        "\u2705 Cache Effectiveness: PASSED (0.4ms)"
+        "\u274c Exception in performance testing: name 'TestQuantumPlannerPerformance' is not defined"
       ],
-      "overall_pass": true,
-      "pass_rate": 0.8571428571428571,
-      "execution_time": 0.12468934059143066,
+      "overall_pass": false,
+      "pass_rate": 0.0,
+      "execution_time": 0.0027303695678710938,
       "gate_code": "QG3"
     },
     "QG4": {
       "gate_name": "Integration & End-to-End",
-      "tests_passed": 4,
+      "tests_passed": 0,
       "tests_failed": 1,
       "details": [
-        "\u274c Complete Workflow: FAILED",
-        "\u2705 Component Integration: PASSED",
-        "\u2705 Resource Usage Validation: PASSED",
-        "\u2705 Error Correction Integration: PASSED",
-        "\u2705 Metrics Consistency: PASSED"
+        "\u274c Exception in integration testing: Unexpected error during quantum circuit planning: 'QuantumInspiredTaskPlanner' object has no attribute '_parallel_plan_quantum_circuit'"
       ],
-      "overall_pass": true,
-      "pass_rate": 0.8,
-      "execution_time": 0.004712104797363281,
+      "overall_pass": false,
+      "pass_rate": 0.0,
+      "execution_time": 0.004380226135253906,
       "gate_code": "QG4"
     }
   },
   "summary": {
     "total_gates": 4,
-    "gates_passed": 3,
-    "gates_failed": 1,
+    "gates_passed": 0,
+    "gates_failed": 4,
     "overall_pass": false,
-    "pass_rate": 0.75,
-    "total_execution_time": 0.13797760009765625
+    "pass_rate": 0.0,
+    "total_execution_time": 0.06061816215515137
   },
-  "end_time": "2025-08-13 13:06:13"
+  "end_time": "2025-08-27 02:29:24"
 }
